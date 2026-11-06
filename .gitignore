@@ -1,0 +1,10 @@
+# Firmware / eMMC dumps — far too large for git, and stock images are
+# device-specific. Keep these backed up outside the repo.
+*.img
+*.img.gz
+*.img.zip
+*.bin
+*.zip
+dump/
+
+.DS_Store
