@@ -65,5 +65,61 @@ case open over ribbon cables — last resort.
 
 - 2026-11-06: device reportedly in recovery + cabled, but macOS sees ZERO USB
   devices (ioreg, system_profiler, lsusb, adb, fastboot all empty; no
-  /dev/cu.* serial, no external disks). Suspect charge-only cable or recovery
-  timeout. Not yet reproduced after one reconnect attempt.
+  /dev/cu.* serial, no external disks).
+- 2026-11-06: cable/port ruled out — a Pixel 10 Pro (18d1:4ee1) enumerated
+  fine on the same cable and port.
+- 2026-11-06: photo confirms the box IS sitting in recovery:
+
+      Android system recovery <3e>
+      R11.3.5-BTS84-20230818.101207
+      Recovery system v5.0
+      [reboot system now]
+      [wipe data/factory reset]
+      E:failed to mount /mnt/external_sd (No such device)   x3
+
+  Still nothing on USB in this state.
+
+## Key finding: this recovery does NOT expose adb
+
+The menu has only TWO entries. Stock AOSP <3e> recovery normally also offers
+"apply update from ADB" / "apply update from SD card" / "wipe cache", and on
+AOSP it is selecting *apply update from ADB* that starts `adbd` (in sideload
+mode). Those entries have been removed from this build, which is consistent
+with `adbd` never starting in recovery — hence zero USB enumeration.
+
+Firmware is dated 2023-08-18, i.e. AFTER the 2022 update that forum users say
+locked things down. The wiki's "adb root in recovery" route was written for
+the older TOUCH and does NOT apply to this device as it stands.
+
+The repeated /mnt/external_sd mount failures mean recovery still has an SD
+code path. The TOUCH is documented as having no SD slot; unknown whether the
+PLUS has an internal one. Any update.zip would still need to pass OEM
+signature checks, so this is unlikely to be a way in.
+
+## UART adapter + wiring
+
+Adapter: Okystar OKY3411, CP2102 6-pin (DTR / RXD / TXD / +5V / GND / 3V3).
+Suitable: CP2102 drives its TX/RX at 3.3 V, matching the tigerbox UART.
+
+macOS 27.0.1 has the driver built in (com.apple.DriverKit-AppleUSBSLCOM.dext)
+- nothing to install. The adapter will appear as /dev/cu.usbserial-* or
+/dev/cu.SLAB_USBtoUART.
+
+Wiring - THREE wires only:
+
+    adapter GND  ->  tigerbox GND   (grey-marked test pad)  [connect first]
+    adapter RXD  ->  tigerbox TX
+    adapter TXD  ->  tigerbox RX
+
+DO NOT connect +5V or 3V3. The tigerbox powers itself; feeding it 5 V risks
+damage. GND is the only power-rail connection.
+
+If the console stays silent, swap RXD/TXD - the wiki explicitly notes the
+labels are reversed relative to what you'd expect.
+
+Connect with:
+
+    screen /dev/cu.usbserial-0001 115200
+
+(Exit screen: Ctrl-A then K, then y.) Settings: 115200 8N1, XON/XOFF.
+Then `su` for root.
