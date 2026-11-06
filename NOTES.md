@@ -123,3 +123,89 @@ Connect with:
 
 (Exit screen: Ctrl-A then K, then y.) Settings: 115200 8N1, XON/XOFF.
 Then `su` for root.
+
+## Observed on the actual TOUCH PLUS board (2026-11-06, component side)
+
+Confirmed by eye, this device:
+
+- eMMC: Samsung KLM8G1GETF-B041 -> 8 GB. Matches the TOUCH.
+- Wi-Fi/BT: separate blue daughter module, silkscreen "tigerbox TOUCH",
+  "LBC-0509AF", dated 2023.08.15, with meander PCB antenna + u.FL ("WIFI1")
+  to an external antenna. The TOUCH wiki lists a BK3266 BT audio SoC on the
+  main board instead, so this part is laid out differently.
+- Sonix MCU on the right edge, near the NFC pads.
+- Labelled pads/connectors seen: SPKL, SPKR (speaker), NFC+ / NFC- (red
+  twisted pair to the coil), "Touch" FPC connector, WIFI1 u.FL.
+- SoC and RAM are NOT visible - they sit under the metal shield can in the
+  middle of the board. Not yet confirmed as RK3128.
+- No UART pads identified on this side. The wiki puts them on the BACKSIDE.
+
+Conclusion: the PLUS board is a different layout from the TOUCH, so the
+wiki's UART pad photo cannot be trusted for pad positions here. Identify
+the pads on this board before soldering.
+
+Fallback if no UART pads exist: the eMMC is a discrete BGA, so Rockchip
+maskrom can be forced by shorting eMMC CLK or D0 to GND at power-on, which
+would make the SoC fall back to USB (VID 2207) - then rkdeveloptool.
+Riskier and needs the shield off.
+
+### Second, clearer photo - parts now legible
+
+Board silkscreen: **OTS178**, dated **23/06/12** (2023-06-12). A second
+marking reads OTS332 on the opposite edge. Board date lines up with the
+2023-08-18 firmware build.
+
+| Marking | Part | Meaning |
+|---|---|---|
+| `Rockchip RK816B-1` | RK816 PMIC | **Confirms a Rockchip platform** |
+| `SEC 325 B041 KLM8G1GETF NAPKB17PE` | Samsung eMMC | 8 GB |
+| `REALTEK 8189FTV` | RTL8189FTV | SDIO Wi-Fi, feeds the WIFI u.FL |
+| `FM17610` | Fudan NFC reader front-end | the tigercard reader |
+| blue module `LBC-0509AF`, 2023.08.15 | BT audio module | separate daughterboard |
+
+RK816 is the companion PMIC for the RK312x family, so RK3128 is now a
+well-supported inference - but the SoC itself is still under the large
+metal shield on the left half of the board and has NOT been read directly.
+
+Labelled pads on this side: BATT (4-pad battery footprint), LOGO (2 pads,
+likely the logo LED), SPKL, SPKR, WIFI (u.FL). **Still no UART pads on
+this side.** The reverse side has not been photographed yet.
+
+## Reverse side: UART pads FOUND - but there are THREE pairs
+
+The solder side carries silkscreened TX/RX test pads in **three separate
+places**, running roughly down the middle of the board:
+
+1. upper pair, next to a column of unpopulated pads and a QFN
+2. middle pair, isolated round pads
+3. lower pair, near the bottom edge
+
+Almost certainly: one is the **SoC console**, the others belong to the
+Bluetooth audio module and the Sonix MCU. Only one will emit a kernel log.
+No GND pad is silkscreened next to any of them.
+
+Also on this side: the RESET tactile switch, a 4R7 inductor, and a blue
+daughterboard marked `F-6986 V2.3 ROHS` along the top edge.
+
+### Finding the right pair - LISTEN ONLY first
+
+Do NOT connect the adapter's TXD yet. With only GND + the adapter's RXD
+connected, nothing drives the board, so a wrong guess costs nothing.
+
+    adapter GND  ->  board GND
+    adapter RXD  ->  candidate TX pad
+    (adapter TXD left disconnected)
+
+GND source: the plated mounting-screw rings, or the shield can. Confirm
+with a multimeter against battery negative before trusting it.
+
+Then power on and watch each candidate in turn:
+
+    screen /dev/cu.usbserial-0001 115200
+
+The SoC console will dump a U-Boot + kernel boot log at power-on. If a pad
+produces steady garbage rather than text, the pad is right but the baud is
+wrong - try 1500000, which some Rockchip builds use. Silence = wrong pad.
+
+Only once a readable boot log appears is it worth soldering TXD on to get
+an interactive shell.
