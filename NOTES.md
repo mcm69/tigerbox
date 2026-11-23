@@ -254,3 +254,65 @@ normal boot - it just has no functions bound, which is exactly what
   command line and the partition table - needed to know what to dump.
 - Console is so far **receive-only**. Whether it gives an interactive shell
   is untested: that needs the adapter's TXD wired to the console RX pad.
+
+## Full boot log captured from power-on (2026-11-23)
+
+Archived: `logs/2026-11-23-uart-boot-full.log`. Partition table extracted
+to `logs/partitions.md`. Hard facts now in hand:
+
+- **SoC: RK3128, confirmed by name** - `Machine: Rockchip RK3128,
+  model: rockchip,rk3128`; `CPU: rk3128` in U-Boot; ARMv7 [410fc075] x4.
+- **RAM: 512 MB DDR3**, 32-bit bus (DDR init header + `Memory: 512MB`).
+- **U-Boot 2014.10-RK3128** (built 2026-07-15); DDR blob "Boot1" 2019;
+  "#Boot ver: 2023-08-18#2.31" matches the recovery build date.
+- eMMC user area **7456 MB** (8 GB class).
+- **androidboot.selinux=permissive** in the cmdline - confirms the earlier
+  avc observation at the kernel level.
+- console = **ttyFIQ0** (see below).
+- Device serial: `REDACTED_SERIAL`.
+
+### CONSTRAINT: secure boot is enabled AND locked
+
+U-Boot prints:
+
+    Secure Boot Mode: 0x1
+    SecureBootEn = 1, SecureBootLock = 1
+    Secure Boot state: 1
+
+Meaning the boot ROM / loader verify signatures on the loader and boot
+chain, and the lock fuse is blown. Practical consequences:
+
+- Flashing an UNSIGNED custom uboot / kernel / boot.img (via maskrom +
+  rkdeveloptool, or an update.zip) will be REJECTED. Full custom-ROM or
+  mainline-Linux flashing is effectively gated without tigermedia's keys.
+- The maskrom fallback (shorting eMMC) can still READ the eMMC for a dump,
+  but cannot write a self-signed boot chain.
+- What IS still open: reading/dumping all partitions, and modifying the
+  CONTENTS of system/userdata (root, build.prop, launcher) - these are not
+  signature-checked at boot on this platform (no dm-verity flag in the
+  cmdline; the TOUCH's build.prop edit route relied on this). VERIFY there
+  is no dm-verity on /system before trusting a system edit to still boot.
+
+So realistic goal = rooted + reskinned stock Android, NOT a from-scratch OS.
+
+### The console is the FIQ debugger, not a getty
+
+cmdline: `console=ttyFIQ0 androidboot.console=ttyFIQ0`. At kernel start the
+log prints `<hit enter to activate fiq debugger>`. So pressing Enter on the
+soldered TX line brings up the Rockchip FIQ debugger, not a login shell
+directly. From the fiq prompt, the `console` command switches to the kernel
+console/shell. This is the interactive path once TXD is wired - expect the
+fiq debugger first, then type `console`, then `su` (SELinux permissive).
+
+### Partition numbering differs from the TOUCH
+
+system is **mmcblk0p11** here (it was p12 on the TOUCH); p12 is
+radical_update. Always resolve via
+/dev/block/platform/*/by-name/, never by hardcoded pN.
+
+### Dump plan (unchanged, now with specifics)
+
+Once the interactive shell is up:
+- full image: `dd if=/dev/block/mmcblk0 of=/data/.../full.img bs=4M` (8 GB)
+  or pull per-partition by-name. system is 600M, userdata 6488M.
+- `adb pull` is easier than dd-over-serial once USB ADB is enabled.
