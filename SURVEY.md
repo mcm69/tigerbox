@@ -278,7 +278,27 @@ come from the stock app's `LightControl`:
 | `laohutou_status` | the **tiger-head** light (*lǎohǔ tóu*, "tiger head") | brightness 0–71 |
 | `/sys/bus/i2c/devices/i2c-2/2-0064/led_debug` | "music light" | `1` on · `0` off |
 
-Not tested — writing to them is a change, so it waits for the build phase.
+**Tested live 2026-11-23** (non-persistent sysfs writes, every write
+accepted):
+
+| Light | Result |
+|---|---|
+| Button ring, solid yellow / green / red / off | **works** |
+| Button ring, flicker (`110000` / `001100` / `000011`, `time_on`/`time_off` 300 ms) | **works** — a blink, visibly different from breathing |
+| Button ring, breathing (`breathled_switch` 7 / 1 / 5) | **works** — a smooth animation. Stopped by writing `0` |
+| Tiger head, `laohutou_status` 0 → 71 → 0 | **works** — brightness changes in visible steps, not smoothly, so any fade has to be done by the app writing values over time |
+| "Music light", `led_debug` 1 / 0 | **works — sound-reactive.** Nothing in silence; with `1` written and audio playing, the **bottom of the box flashes blue in sync** with the sound |
+
+The music light is an **SN3199** (Si-En 9-channel I2C LED driver, i2c-2
+0x64, driver `sn3199`). `led_debug` is a mode switch, not a brightness:
+`1` enables the sound-reactive effect, `0` disables it. Tested with a quiet
+6 s chime played through `tinyplay` with `tinymix "Playback Path" SPK`
+(the path the audio HAL itself sets), path set back to `OFF` afterwards.
+For our app: write `1` when playback starts if the effect is wanted —
+the stock app defaults it on (`MUSIC_LIGHT_DEFAULT = true`).
+
+Flicker timing was reset to `time_on` 100 / `time_off` 900 afterwards
+(900 is the stock app's value, 100 is a guess) and the ring to green.
 
 ### Screen
 
