@@ -1,0 +1,42 @@
+--- mf175x (i2c-2 0x16) sysfs
+lrwxrwxrwx root     root              2015-01-21 10:49 driver -> ../../../../bus/i2c/drivers/mf175x
+drwxr-xr-x root     root              2015-01-21 09:50 input
+-r--r--r-- root     root         4096 2015-01-21 10:49 modalias
+-r--r--r-- root     root         4096 2015-01-21 10:49 name
+-rw-rw-rw- root     root         4096 2015-01-21 10:49 nfc_debug
+drwxr-xr-x root     root              2015-01-21 09:50 power
+lrwxrwxrwx root     root              2015-01-21 10:49 subsystem -> ../../../../bus/i2c
+-rw-r--r-- root     root         4096 2015-01-21 09:50 uevent
+
+mf175x
+--- driver
+lrwxrwxrwx root     root              2015-01-21 10:49 driver -> ../../../../bus/i2c/drivers/mf175x
+--- pwmleds.20
+-rw-rw-rw- root     root         4096 2015-01-21 10:49 breathled_switch
+lrwxrwxrwx root     root              2015-01-21 10:49 driver -> ../../bus/platform/drivers/leds_pwm
+-rw-rw-rw- root     root         4096 2015-01-21 09:50 laohutou_status
+-r--r--r-- root     root         4096 2015-01-21 10:49 modalias
+-rw-rw-rw- root     root         4096 2015-01-21 10:48 modem_status
+drwxr-xr-x root     root              2015-01-21 09:50 power
+-rw-rw-rw- root     root         4096 2015-01-21 10:49 pwmled_speed
+lrwxrwxrwx root     root              2015-01-21 10:49 subsystem -> ../../bus/platform
+-rw-rw-rw- root     root         4096 2015-01-21 10:48 time_off
+-rw-rw-rw- root     root         4096 2015-01-21 10:48 time_on
+-rw-r--r-- root     root         4096 2015-01-21 09:50 uevent
+--- pwmleds readable values
+breathled_switch=-1005572096
+laohutou_status=-1005572096
+modalias=platform:pwmleds.20
+modem_status=-1005572096
+pwmled_speed=20
+time_off=-1005572096
+time_on=-1005572096
+uevent=DRIVER=leds_pwm
+OF_NAME=pwmleds
+OF_FULLNAME=/pwmleds
+OF_COMPATIBLE_0=pwm-leds
+OF_COMPATIBLE_N=1
+MODALIAS=of:NpwmledsT<NULL>Cpwm-leds
+--- ttyS0 users
+lrwx------ system   system            2015-01-21 10:50 37 -> /dev/ttyS0
+810 media.tiger.tigerbox

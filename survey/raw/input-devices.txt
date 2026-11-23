@@ -1,0 +1,41 @@
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="gslX680"
+P: Phys=
+S: Sysfs=/devices/2005a000.i2c/i2c-2/2-0040/input/input0
+U: Uniq=
+H: Handlers=event0 cpufreq ddr_freq 
+B: PROP=2
+B: EV=10000b
+B: KEY=0
+B: ABS=2658000 0
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="rk816_pwrkey"
+P: Phys=rk816_pwrkey/input0
+S: Sysfs=/devices/20072000.i2c/i2c-0/0-001a/rk8xx-pwrkey/input/input1
+U: Uniq=
+H: Handlers=event1 cpufreq ddr_freq keychord 
+B: PROP=0
+B: EV=3
+B: KEY=100000 0 0 0
+
+I: Bus=0019 Vendor=0001 Product=0001 Version=0100
+N: Name="rk29-keypad"
+P: Phys=gpio-keys/input0
+S: Sysfs=/devices/2006c000.adc/key.21/input/input2
+U: Uniq=
+H: Handlers=event2 ddr_freq keychord 
+B: PROP=0
+B: EV=3
+B: KEY=88000 142140 38180 0 0
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="mf175x"
+P: Phys=
+S: Sysfs=/devices/2005a000.i2c/i2c-2/2-0016/input/input3
+U: Uniq=
+H: Handlers=event3 
+B: PROP=0
+B: EV=3
+B: KEY=18000 0 0
+

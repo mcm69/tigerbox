@@ -1,0 +1,26 @@
+### /system/usr/keylayout/rk29-keypad.kl
+key 102   HOME
+key 114   VOLUME_DOWN
+key 115   VOLUME_UP
+key 116   POWER
+key 143   WAKEUP
+key 104   PAGE_UP
+key 109   PAGE_DOWN
+key 72     PICTSYMBOLS
+key 71     SWITCH_CHARSET
+key 79     F1
+key 80     F2
+key 81     F3
+### /system/usr/keylayout/Generic.kl
+key 71    NUMPAD_7
+key 72    NUMPAD_8
+key 79    NUMPAD_1
+key 80    NUMPAD_2
+key 81    NUMPAD_3
+key 102   MOVE_HOME
+key 104   PAGE_UP
+key 109   PAGE_DOWN
+key 114   VOLUME_DOWN
+key 115   VOLUME_UP
+key 116   POWER
+key 143   WAKEUP

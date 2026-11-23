@@ -1,0 +1,97 @@
+Applications Memory Usage (kB):
+Uptime: 3490539 Realtime: 3490539
+
+Total PSS by process:
+    70288 kB: media.tiger.tigerbox (pid 810 / activities)
+    32590 kB: system (pid 392)
+    20260 kB: com.android.systemui (pid 571)
+     9845 kB: com.android.inputmethod.latin (pid 694)
+     8052 kB: android.process.media (pid 533)
+     6492 kB: android.rockchip.update.service (pid 626)
+     5619 kB: com.android.nfc (pid 788)
+     5012 kB: zygote (pid 166)
+     1573 kB: mediaserver (pid 160)
+     1554 kB: surfaceflinger (pid 155)
+      898 kB: logd (pid 150)
+      757 kB: wpa_supplicant_rtl (pid 570)
+      725 kB: dumpsys (pid 1228)
+      369 kB: adbd (pid 1072)
+      354 kB: /init (pid 1)
+      340 kB: netd (pid 157)
+      288 kB: healthd (pid 151)
+      260 kB: ueventd (pid 136)
+      212 kB: sdcard (pid 167)
+      159 kB: servicemanager (pid 153)
+      159 kB: vold (pid 154)
+       69 kB: lmkd (pid 152)
+       67 kB: installd (pid 161)
+       44 kB: keystore (pid 163)
+       42 kB: drmserver (pid 159)
+       18 kB: debuggerd (pid 158)
+       15 kB: sh (pid 156)
+
+Total PSS by OOM adjustment:
+    12915 kB: Native
+                5012 kB: zygote (pid 166)
+                1573 kB: mediaserver (pid 160)
+                1554 kB: surfaceflinger (pid 155)
+                 898 kB: logd (pid 150)
+                 757 kB: wpa_supplicant_rtl (pid 570)
+                 725 kB: dumpsys (pid 1228)
+                 369 kB: adbd (pid 1072)
+                 354 kB: /init (pid 1)
+                 340 kB: netd (pid 157)
+                 288 kB: healthd (pid 151)
+                 260 kB: ueventd (pid 136)
+                 212 kB: sdcard (pid 167)
+                 159 kB: servicemanager (pid 153)
+                 159 kB: vold (pid 154)
+                  69 kB: lmkd (pid 152)
+                  67 kB: installd (pid 161)
+                  44 kB: keystore (pid 163)
+                  42 kB: drmserver (pid 159)
+                  18 kB: debuggerd (pid 158)
+                  15 kB: sh (pid 156)
+    32590 kB: System
+               32590 kB: system (pid 392)
+    33931 kB: Persistent
+               20260 kB: com.android.systemui (pid 571)
+                8052 kB: android.process.media (pid 533)
+                5619 kB: com.android.nfc (pid 788)
+    70288 kB: Foreground
+               70288 kB: media.tiger.tigerbox (pid 810 / activities)
+     9845 kB: Perceptible
+                9845 kB: com.android.inputmethod.latin (pid 694)
+     6492 kB: B Services
+                6492 kB: android.rockchip.update.service (pid 626)
+
+Total PSS by category:
+    56204 kB: Dalvik
+    34478 kB: Dalvik Other
+    26815 kB: Native
+    12845 kB: .art mmap
+    12128 kB: .oat mmap
+    10944 kB: .so mmap
+     4464 kB: .dex mmap
+     2873 kB: .apk mmap
+     2332 kB: Stack
+     1714 kB: Other mmap
+      967 kB: Unknown
+      164 kB: Ashmem
+      113 kB: Other dev
+       16 kB: .ttf mmap
+        4 kB: Cursor
+        0 kB: Gfx dev
+        0 kB: .jar mmap
+        0 kB: EGL mtrack
+        0 kB: GL mtrack
+        0 kB: Other mtrack
+
+Total RAM: 503888 kB (status critical)
+ Free RAM: 240576 kB (0 cached pss + 223548 cached kernel + 17028 free)
+ Used RAM: 227977 kB (166061 used pss + 61916 kernel)
+ Lost RAM: 35335 kB
+     ZRAM: 4012 kB physical used for 10568 kB in swap (65532 kB total swap)
+      KSM: 25120 kB saved from shared 3020 kB
+           105160 kB unshared; 71120 kB volatile
+   Tuning: 150 (large 384), oom 103991 kB, restore limit 34663 kB (high-end-gfx)

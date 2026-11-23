@@ -1,0 +1,747 @@
+Activity Resolver Table:
+  Full MIME Types:
+      application/pkix-cert:
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+      application/x-x509-ca-cert:
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+      vnd.android.cursor.item/pppoe-accounts:
+        12f8b2f4 com.android.settings/.pppoe.PppoeAccountsEditor
+      video/3gpp:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (2 filters)
+      application/vnd.wap.xhtml+xml:
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity
+      text/html:
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity
+      vnd.android.cursor.item/telephony-carrier:
+        1569de63 com.android.settings/.ApnEditor
+      video/3gpp2:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (2 filters)
+      application/application/x-pem-file:
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+      */*:
+        3680a60 com.android.nfc/.BeamShareActivity (2 filters)
+      video/x-flv:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (2 filters)
+      application/vnd.android.package-archive:
+        cb5db19 com.android.packageinstaller/.PackageInstallerActivity
+      application/x-x509-server-cert:
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+      video/*:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity
+      application/xhtml+xml:
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity
+      vnd.android.cursor.dir/telephony-carrier:
+        1569de63 com.android.settings/.ApnEditor
+      text/plain:
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity
+        208617de com.android.captiveportallogin/.CaptivePortalLoginActivity
+      video/3gp:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (2 filters)
+      video/flv:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (2 filters)
+      video/mp4:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (2 filters)
+      application/x-pkcs12:
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+      vnd.android.cursor.dir/pppoe-accounts:
+        12f8b2f4 com.android.settings/.pppoe.PppoeAccountsEditor
+      image/*:
+        811fdbf com.android.wallpapercropper/.WallpaperCropActivity
+      application/x-x509-user-cert:
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+      application/com.android.managedprovisioning:
+        2bb36c8c com.android.managedprovisioning/.DeviceOwnerProvisioningActivity
+
+  Base MIME Types:
+      vnd.android.cursor.dir:
+        12f8b2f4 com.android.settings/.pppoe.PppoeAccountsEditor
+        1569de63 com.android.settings/.ApnEditor
+      vnd.android.cursor.item:
+        12f8b2f4 com.android.settings/.pppoe.PppoeAccountsEditor
+        1569de63 com.android.settings/.ApnEditor
+      text:
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity (2 filters)
+        208617de com.android.captiveportallogin/.CaptivePortalLoginActivity
+      video:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (12 filters)
+      application:
+        cb5db19 com.android.packageinstaller/.PackageInstallerActivity
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity (2 filters)
+        2bb36c8c com.android.managedprovisioning/.DeviceOwnerProvisioningActivity
+        2f303cc7 com.android.certinstaller/.CertInstallerMain (6 filters)
+
+  Wild MIME Types:
+      *:
+        3680a60 com.android.nfc/.BeamShareActivity (2 filters)
+      image:
+        811fdbf com.android.wallpapercropper/.WallpaperCropActivity
+      video:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity
+
+  Schemes:
+      printjob:
+        6c00fd5 com.android.settings/.Settings$PrintJobSettingsActivity
+      package:
+        cb5db19 com.android.packageinstaller/.PackageInstallerActivity
+        10f2b6db com.android.packageinstaller/.UninstallerActivity
+        3857d3ea com.android.settings/.applications.InstalledAppDetails
+      file:
+        cb5db19 com.android.packageinstaller/.PackageInstallerActivity (2 filters)
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity
+      http:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity
+      rtsp:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (2 filters)
+      content:
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity
+
+  Non-Data Actions:
+      android.net.wifi.PICK_WIFI_NETWORK:
+        3370c578 com.android.settings/.wifi.WifiPickerActivity
+      android.settings.SHOW_REGULATORY_INFO:
+        35fed451 com.android.settings/.RegulatoryInfoDisplayActivity
+      android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS:
+        29d744b6 com.android.settings/.Settings$NotificationAccessSettingsActivity
+      android.settings.USER_SETTINGS:
+        25be5b7 com.android.settings/.Settings$UserSettingsActivity
+      com.android.settings.USER_DICTIONARY_INSERT:
+        23a8c124 com.android.settings/.inputmethod.UserDictionaryAddWordActivity
+      android.settings.HOME_SETTINGS:
+        1f8b648d com.android.settings/.Settings$HomeSettingsActivity
+      android.settings.DISPLAY_SETTINGS:
+        390af642 com.android.settings/.Settings$DisplaySettingsActivity
+      android.settings.LOCATION_SOURCE_SETTINGS:
+        19bf2653 com.android.settings/.Settings$LocationSettingsActivity
+      android.settings.BLUETOOTH_SETTINGS:
+        2b42cb90 com.android.settings/.Settings$BluetoothSettingsActivity
+      com.android.credentials.INSTALL:
+        6d6bc89 com.android.settings/.CredentialStorage
+      android.settings.APPLICATION_DEVELOPMENT_SETTINGS:
+        31d6348e com.android.settings/.Settings$DevelopmentSettingsActivity
+      android.provider.Telephony.ACTION_CHANGE_DEFAULT:
+        300bd4af com.android.settings/.SmsDefaultDialog
+      android.settings.SETTINGS:
+        3e3110bc com.android.settings/.Settings
+      com.android.settings.SETUP_LOCK_SCREEN:
+        1b659845 com.android.settings/.SetupChooseLockGeneric
+      com.android.settings.sim.SIM_SUB_INFO_SETTINGS:
+        29050b9a com.android.settings/.Settings$SimSettingsActivity
+      android.settings.ADD_ACCOUNT_SETTINGS:
+        13cb0ccb com.android.settings/.accounts.AddAccountSettings
+      android.intent.action.CHOOSER:
+        3b5c7ca8 android/com.android.internal.app.ChooserActivity
+      android.settings.USAGE_ACCESS_SETTINGS:
+        64c73c1 com.android.settings/.Settings$UsageAccessSettingsActivity
+      android.bluetooth.device.action.CONNECTION_ACCESS_CANCEL:
+        2184766 com.android.settings/.bluetooth.BluetoothPermissionActivity
+      com.android.settings.TRUSTED_CREDENTIALS_USER:
+        28fbaaa7 com.android.settings/.Settings$TrustedCredentialsSettingsActivity
+      android.app.action.ADD_DEVICE_ADMIN:
+        550bb54 com.android.settings/.DeviceAdminAdd
+      android.bluetooth.device.action.CONNECTION_ACCESS_REQUEST:
+        2184766 com.android.settings/.bluetooth.BluetoothPermissionActivity
+      com.android.systemui.recents.TOGGLE_RECENTS:
+        136b8afd com.android.systemui/.recents.RecentsActivity
+      android.settings.LICENSE:
+        5d173f2 com.android.settings/.SettingsLicenseActivity
+      android.nfc.cardemulation.action.ACTION_CHANGE_DEFAULT:
+        2aae4a43 com.android.settings/.nfc.PaymentDefaultDialog
+      android.settings.BACKUP_AND_RESET_SETTINGS:
+        39a838c0 com.android.settings/.Settings$PrivacySettingsActivity
+      android.settings.ACTION_OTHER_SOUND_SETTINGS:
+        326ad9f9 com.android.settings/.Settings$OtherSoundSettingsActivity
+      android.settings.ACCOUNT_SYNC_SETTINGS:
+        157edd3e com.android.settings/.Settings$AccountSyncSettingsActivity
+      android.intent.action.MAIN:
+        664a33 com.android.settings/.Settings$ApnSettingsActivity
+        c65386 com.android.inputmethod.latin/.setup.SetupActivity
+        c7dc62 com.android.settings/.sim.SimDialogActivity
+        25be5b7 com.android.settings/.Settings$UserSettingsActivity
+        2c8c8d9 com.android.settings/.Settings$RunningServicesActivity
+        2e7aa4f com.android.systemui/.DessertCase
+        2fc5fd8 com.android.settings/.Settings$AdvancedWifiSettingsActivity
+        331568f com.android.settings/.Settings$WifiP2pSettingsActivity
+        4720675 com.android.settings/.Settings$DreamSettingsActivity
+        55276e5 com.android.systemui/.Somnambulator
+        64c73c1 com.android.settings/.Settings$UsageAccessSettingsActivity
+        7078f4a com.android.settings/.Settings$WifiSettingsActivity
+        73ffc8b com.android.settings/.BatteryInfo
+        77363c8 com.android.vpndialogs/.ManageDialog
+        8bb11ee com.android.settings/.pppoe.PppoeAccountsSettings
+        8df1720 com.android.settings/.Settings$ManageApplicationsActivity
+        9389c61 com.android.wallpaper.holospiral/.HoloSpiralTestActivity
+        9f68850 com.android.settings/.MediaFormat
+        b538887 com.android.settings/.Settings$SpellCheckersSettingsActivity
+        b72f7fe com.android.settings/.CryptKeeper
+        b761cb5 com.android.settings/.Settings$WirelessSettingsActivity
+        bc3a184 com.android.settings/.wifi.WifiAPITest
+        c1631e4 com.android.settings/.deviceinfo.Status
+        c5b017f com.android.settings/.Settings$NotificationStationActivity
+        d7d486f com.android.settings/.Settings$PrintSettingsActivity
+        d85d29e com.android.settings/.Settings$StorageUseActivity
+        d9a2d6d com.android.settings/.wifi.WifiStatusTest
+        db02de3 com.android.inputmethod.latin/com.android.inputmethod.dictionarypack.DownloadOverMeteredDialog
+        e4f70c6 com.android.settings/.Settings$KeyboardLayoutPickerActivity
+        ffce25a com.android.settings/.Settings$WifiDisplaySettingsActivity
+        100ae1f3 com.android.settings/.Settings$HdmiSettingsActivity
+        10242212 com.android.inputmethod.latin/com.android.inputmethod.dictionarypack.DictionarySettingsActivity
+        104b5cae com.android.settings/.Settings$UsbConnectSettingsActivity
+        10c52757 com.android.settings/.screen.ScreenScaleActivity
+        1224a580 com.android.settings/.Settings$BatterySaverSettingsActivity
+        139562b2 com.android.settings/.UsageStatsActivity
+        13cabda2 com.android.settings/.wifi.WifiApSettings
+        13cb0ccb com.android.settings/.accounts.AddAccountSettings
+        14741995 com.android.settings/.MonitoringCertInfoActivity
+        1496ca26 com.android.settings/.ProxySelector
+        157edd3e com.android.settings/.Settings$AccountSyncSettingsActivity
+        1602960a com.android.settings/.Settings$DualscreenSettingsActivity
+        1604f129 com.android.settings/.SoundDevicesManager
+        19609a49 com.android.settings/.Settings$QuickLaunchSettingsActivity
+        19bf2653 com.android.settings/.Settings$LocationSettingsActivity
+        19ee99ac com.android.settings/.Settings$DataUsageSummaryActivity
+        1a3ef474 com.android.inputmethod.latin/.settings.SettingsActivity
+        1a6c6eb0 com.android.settings/.Settings$ScreenshotSettingsActivity
+        1a9a1f4e com.android.settings/.quicklaunch.BookmarkPicker
+        1aa1c5dc com.android.systemui/.egg.LLandActivity
+        1bacde13 com.android.settings/.Settings$StorageSettingsActivity
+        1da4aa38 com.android.settings/.Settings$AccessibilitySettingsActivity
+        1e1e4d5e android.rk.RockVideoPlayer/.RockVideoPlayer
+        1f43d97c com.android.settings/.Settings$UsbSettingsActivity
+        1f8b648d com.android.settings/.Settings$HomeSettingsActivity
+        1fe994f1 com.android.settings/.Settings$NotificationSettingsActivity
+        20b93369 com.android.settings/.Settings$EthernetSettingsActivity
+        21019d9d com.android.inputmethod.latin/.spellcheck.SpellCheckerSettingsActivity
+        216ae6a1 com.android.settings/.Settings$VoiceInputSettingsActivity
+        21718f2d com.android.settings/.Settings$AppNotificationSettingsActivity
+        21889447 com.android.inputmethod.latin/.setup.SetupWizardActivity
+        22597203 com.android.settings/.Settings$PowerUsageSummaryActivity
+        2290e3e0 com.android.provision/.DefaultActivity
+        22fee64d com.android.settings/.deviceinfo.SimStatus
+        23b8cf31 com.android.settings/.Settings$SavedAccessPointsSettingsActivity
+        246e854c com.android.settings/.Settings$SecuritySettingsActivity
+        2507a7b9 com.android.settings/.Settings$AccountSettingsActivity
+        251e9c6b com.android.vpndialogs/.ConfirmDialog
+        253c08d6 com.android.settings/.Settings$ScreenSettingsActivity
+        259473b4 com.android.settings/.inputmethod.InputMethodAndSubtypeEnablerActivity
+        25b36f08 com.android.settings/.Settings$InputMethodAndLanguageSettingsActivity
+        25fb9d1c com.android.settings/.Settings$VpnSettingsActivity
+        264e8b97 com.android.settings/.wifi.WifiConfigInfo
+        26a2fcbd com.android.settings/.SMSCSettingActivity
+        26c9a177 com.android.settings/.Settings$TextToSpeechSettingsActivity
+        284a5efa com.android.settings/.DateTimeSettingsSetupWizard
+        28fbaaa7 com.android.settings/.Settings$TrustedCredentialsSettingsActivity
+        29050b9a com.android.settings/.Settings$SimSettingsActivity
+        291cbebb com.android.settings/.wifi.WifiSetupActivity
+        2928369b com.android.settings/.IccLockSettings
+        29d744b6 com.android.settings/.Settings$NotificationAccessSettingsActivity
+        2a49ba11 com.android.settings/.Settings$AccessibilityDaltonizerSettingsActivity
+        2a61479f com.android.managedprovisioning/.HomeReceiverActivity
+        2b41d352 com.android.settings/.Settings$ZenModeSettingsActivity
+        2b42cb90 com.android.settings/.Settings$BluetoothSettingsActivity
+        2c9b51f0 com.android.settings/.Settings$TetherSettingsActivity
+        2cae4bdd com.android.settings/.Settings$UserDictionarySettingsActivity
+        2e0f9205 com.android.settings/.Settings$AndroidBeamSettingsActivity
+        2f81a498 com.android.settings/.Settings$ConditionProviderSettingsActivity
+        30fc4981 com.android.settings/.RadioInfo
+        31d6348e com.android.settings/.Settings$DevelopmentSettingsActivity
+        323b9776 com.android.settings/.Settings$CaptioningSettingsActivity
+        326ad9f9 com.android.settings/.Settings$OtherSoundSettingsActivity
+        333820ec com.android.settings/.Settings
+        335bdc14 com.android.settings/.TestingSettings
+        3370c578 com.android.settings/.wifi.WifiPickerActivity
+        33787aaa com.android.settings/.Settings$DeviceAdminSettingsActivity
+        33b31168 com.android.settings/.Display
+        33f72b5f com.android.settings/.Settings$CryptKeeperSettingsActivity
+        352fd667 com.android.settings/.BandMode
+        35a89d25 com.android.settings/.Settings$DateTimeSettingsActivity
+        35b75616 com.android.settings/.wifi.WifiInfo
+        390af642 com.android.settings/.Settings$DisplaySettingsActivity
+        39a838c0 com.android.settings/.Settings$PrivacySettingsActivity
+        3a387244 com.android.settings/.Settings$SoundSettingsActivity
+        3c5f7699 android.rockchip.update.service/.Setting
+        3cd62623 com.android.settings/.Settings$DeviceInfoSettingsActivity
+        3d41b502 com.android.settings/.deviceinfo.ImeiInformation
+        3e7495ba media.tiger.tigerbox/.ui.LauncherActivity
+        3e8d1e7b com.android.settings/.Settings$PaymentSettingsActivity
+        3ff6ccab com.android.settings/.Settings$LocalePickerActivity
+      android.intent.action.VIEW:
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity
+      android.intent.action.MANAGE_PACKAGE_STORAGE:
+        d85d29e com.android.settings/.Settings$StorageUseActivity
+      android.settings.INTERNAL_STORAGE_SETTINGS:
+        1bacde13 com.android.settings/.Settings$StorageSettingsActivity
+      android.settings.MANAGE_APPLICATIONS_SETTINGS:
+        8df1720 com.android.settings/.Settings$ManageApplicationsActivity
+      android.settings.SYNC_SETTINGS:
+        2507a7b9 com.android.settings/.Settings$AccountSettingsActivity
+      android.app.action.SET_PROFILE_OWNER:
+        32dc53f com.android.settings/.SetProfileOwner
+      android.net.scoring.CHANGE_ACTIVE:
+        1a505e0c com.android.settings/.ActiveNetworkScorerDialog
+      android.settings.NFC_PAYMENT_SETTINGS:
+        3e8d1e7b com.android.settings/.Settings$PaymentSettingsActivity
+      com.android.settings.TTS_SETTINGS:
+        26c9a177 com.android.settings/.Settings$TextToSpeechSettingsActivity
+      android.settings.SCREEN_SETTINGS:
+        253c08d6 com.android.settings/.Settings$ScreenSettingsActivity
+      android.settings.QUICK_LAUNCH_SETTINGS:
+        19609a49 com.android.settings/.Settings$QuickLaunchSettingsActivity
+      android.settings.ACTION_APP_NOTIFICATION_REDACTION:
+        3a27e355 com.android.settings/.notification.RedactionSettingsStandalone
+      android.settings.MEMORY_CARD_SETTINGS:
+        1bacde13 com.android.settings/.Settings$StorageSettingsActivity
+      android.settings.ACCESSIBILITY_SETTINGS:
+        1da4aa38 com.android.settings/.Settings$AccessibilitySettingsActivity
+      com.android.net.wifi.SETUP_WIFI_NETWORK:
+        291cbebb com.android.settings/.wifi.WifiSetupActivity
+      android.intent.action.SHOW_BRIGHTNESS_DIALOG:
+        12fde16a com.android.systemui/.settings.BrightnessDialog
+      android.intent.action.SET_WALLPAPER:
+        32c3765b com.android.wallpaper.livepicker/.LiveWallpaperActivity
+      android.bluetooth.adapter.action.REQUEST_ENABLE:
+        10ab4ef8 com.android.settings/.bluetooth.RequestPermissionActivity
+      android.settings.PRIVACY_SETTINGS:
+        39a838c0 com.android.settings/.Settings$PrivacySettingsActivity
+      com.android.settings.QUICK_LAUNCH_SETTINGS:
+        19609a49 com.android.settings/.Settings$QuickLaunchSettingsActivity
+      com.android.settings.MONITORING_CERT_INFO:
+        14741995 com.android.settings/.MonitoringCertInfoActivity
+      android.app.action.PROVISION_MANAGED_PROFILE:
+        16d05fd1 com.android.managedprovisioning/.ProfileOwnerPreProvisioningActivity
+      android.settings.WIRELESS_SETTINGS:
+        b761cb5 com.android.settings/.Settings$WirelessSettingsActivity
+      android.settings.USER_DICTIONARY_SETTINGS:
+        2cae4bdd com.android.settings/.Settings$UserDictionarySettingsActivity
+      android.settings.STORAGE_USB_SETTINGS:
+        1f43d97c com.android.settings/.Settings$UsbSettingsActivity
+      com.android.systemui.TOGGLE_RECENTS:
+        2090aa36 com.android.systemui/.recent.RecentsActivity
+      android.settings.WIFI_IP_SETTINGS:
+        2fc5fd8 com.android.settings/.Settings$AdvancedWifiSettingsActivity
+      android.settings.APPLICATION_SETTINGS:
+        8df1720 com.android.settings/.Settings$ManageApplicationsActivity
+      android.bluetooth.device.action.PAIRING_REQUEST:
+        d391d37 com.android.settings/.bluetooth.BluetoothPairingDialog
+      com.android.settings.TRUSTED_CREDENTIALS:
+        28fbaaa7 com.android.settings/.Settings$TrustedCredentialsSettingsActivity
+      android.credentials.UNLOCK:
+        246e854c com.android.settings/.Settings$SecuritySettingsActivity
+      com.android.credentials.UNLOCK:
+        6d6bc89 com.android.settings/.CredentialStorage
+      android.intent.action.QUICK_CLOCK:
+        35a89d25 com.android.settings/.Settings$DateTimeSettingsActivity
+      android.credentials.INSTALL_AS_USER:
+        17c262a4 com.android.certinstaller/.InstallCertAsUser
+      android.net.vpn.SETTINGS:
+        25fb9d1c com.android.settings/.Settings$VpnSettingsActivity
+      android.settings.DEVICE_INFO_SETTINGS:
+        3cd62623 com.android.settings/.Settings$DeviceInfoSettingsActivity
+      com.android.credentials.RESET:
+        6d6bc89 com.android.settings/.CredentialStorage
+      android.net.wifi.action.REQUEST_SCAN_ALWAYS_AVAILABLE:
+        6aa280d com.android.settings/.wifi.WifiScanModeActivity
+      android.settings.SECURITY_SETTINGS:
+        246e854c com.android.settings/.Settings$SecuritySettingsActivity
+      android.intent.action.POWER_USAGE_SUMMARY:
+        22597203 com.android.settings/.Settings$PowerUsageSummaryActivity
+      com.android.settings.SCREEN_SETTINGS:
+        253c08d6 com.android.settings/.Settings$ScreenSettingsActivity
+      android.settings.ZEN_MODE_SETTINGS:
+        2b41d352 com.android.settings/.Settings$ZenModeSettingsActivity
+      android.intent.action.PICK_ACTIVITY:
+        35b533c2 com.android.settings/.ActivityPicker
+      android.settings.MANAGE_ALL_APPLICATIONS_SETTINGS:
+        8df1720 com.android.settings/.Settings$ManageApplicationsActivity
+      android.settings.WIFI_SETTINGS:
+        7078f4a com.android.settings/.Settings$WifiSettingsActivity
+      android.bluetooth.adapter.action.REQUEST_DISCOVERABLE:
+        10ab4ef8 com.android.settings/.bluetooth.RequestPermissionActivity
+      android.settings.APP_NOTIFICATION_SETTINGS:
+        21718f2d com.android.settings/.Settings$AppNotificationSettingsActivity
+      android.settings.AIRPLANE_MODE_SETTINGS:
+        b761cb5 com.android.settings/.Settings$WirelessSettingsActivity
+      android.settings.SOUND_SETTINGS:
+        3a387244 com.android.settings/.Settings$SoundSettingsActivity
+      android.intent.action.RINGTONE_PICKER:
+        1df855d3 com.android.providers.media/.RingtonePickerActivity
+      android.settings.VOICE_INPUT_SETTINGS:
+        216ae6a1 com.android.settings/.Settings$VoiceInputSettingsActivity
+      android.service.wallpaper.CHANGE_LIVE_WALLPAPER:
+        21150510 com.android.wallpaper.livepicker/.LiveWallpaperChange
+      com.android.settings.STORAGE_USB_SETTINGS:
+        1f43d97c com.android.settings/.Settings$UsbSettingsActivity
+      android.settings.WIFI_DISPLAY_SETTINGS:
+        ffce25a com.android.settings/.Settings$WifiDisplaySettingsActivity
+      android.settings.NFCSHARING_SETTINGS:
+        2e0f9205 com.android.settings/.Settings$AndroidBeamSettingsActivity
+      android.content.pm.action.REQUEST_PERMISSION:
+        37de3809 com.android.packageinstaller/.GrantActivity
+      android.app.action.CONFIRM_DEVICE_CREDENTIAL:
+        1ea6ca0e com.android.settings/.ConfirmDeviceCredentialActivity
+      android.settings.NOTIFICATION_SETTINGS:
+        1fe994f1 com.android.settings/.Settings$NotificationSettingsActivity
+      android.settings.DREAM_SETTINGS:
+        4720675 com.android.settings/.Settings$DreamSettingsActivity
+        1602960a com.android.settings/.Settings$DualscreenSettingsActivity
+      android.intent.action.RESTRICTIONS_CHALLENGE:
+        33687c2f android/com.android.internal.app.RestrictionsPinActivity
+      android.intent.action.ACTION_REQUEST_SHUTDOWN:
+        34ad623c android/com.android.internal.app.ShutdownActivity
+      android.settings.INPUT_METHOD_SUBTYPE_SETTINGS:
+        259473b4 com.android.settings/.inputmethod.InputMethodAndSubtypeEnablerActivity
+      android.settings.CAST_SETTINGS:
+        ffce25a com.android.settings/.Settings$WifiDisplaySettingsActivity
+      com.android.settings.ACCESSIBILITY_COLOR_SPACE_SETTINGS:
+        2a49ba11 com.android.settings/.Settings$AccessibilityDaltonizerSettingsActivity
+      com.android.settings.APPLICATION_DEVELOPMENT_SETTINGS:
+        31d6348e com.android.settings/.Settings$DevelopmentSettingsActivity
+      com.android.keychain.CHOOSER:
+        38294bc5 com.android.keychain/.KeyChainActivity
+      android.settings.ACTION_PRINT_SETTINGS:
+        d7d486f com.android.settings/.Settings$PrintSettingsActivity
+      android.app.action.START_ENCRYPTION:
+        33f72b5f com.android.settings/.Settings$CryptKeeperSettingsActivity
+      android.service.wallpaper.LIVE_WALLPAPER_CHOOSER:
+        32c3765b com.android.wallpaper.livepicker/.LiveWallpaperActivity
+      android.settings.INPUT_METHOD_SETTINGS:
+        25b36f08 com.android.settings/.Settings$InputMethodAndLanguageSettingsActivity
+      com.android.settings.DISPLAY_SETTINGS:
+        390af642 com.android.settings/.Settings$DisplaySettingsActivity
+      android.content.pm.action.CONFIRM_PERMISSIONS:
+        cb5db19 com.android.packageinstaller/.PackageInstallerActivity
+      android.settings.LOCALE_SETTINGS:
+        3ff6ccab com.android.settings/.Settings$LocalePickerActivity
+      android.credentials.INSTALL:
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+      android.app.action.SET_NEW_PASSWORD:
+        1e09791a com.android.settings/.ChooseLockGeneric
+      android.appwidget.action.APPWIDGET_BIND:
+        310aac4b com.android.settings/.AllowBindAppWidgetActivity
+      android.appwidget.action.APPWIDGET_PICK:
+        2f0c6628 com.android.settings/.AppWidgetPickActivity
+      com.android.managedprovisioning.ACTION_PROVISION_MANAGED_DEVICE:
+        2bb36c8c com.android.managedprovisioning/.DeviceOwnerProvisioningActivity
+      android.settings.WIFI_IF_SETTINGS:
+        23b8cf31 com.android.settings/.Settings$SavedAccessPointsSettingsActivity
+      android.settings.APN_SETTINGS:
+        664a33 com.android.settings/.Settings$ApnSettingsActivity
+      com.android.settings.SOUND_SETTINGS:
+        3a387244 com.android.settings/.Settings$SoundSettingsActivity
+      android.settings.CAPTIONING_SETTINGS:
+        323b9776 com.android.settings/.Settings$CaptioningSettingsActivity
+      com.android.settings.USER_DICTIONARY_EDIT:
+        23a8c124 com.android.settings/.inputmethod.UserDictionaryAddWordActivity
+      android.intent.action.CREATE_SHORTCUT:
+        3a57df41 com.android.settings/.CreateShortcut
+      android.settings.ACTION_CONDITION_PROVIDER_SETTINGS:
+        2f81a498 com.android.settings/.Settings$ConditionProviderSettingsActivity
+      android.intent.action.REBOOT:
+        34ad623c android/com.android.internal.app.ShutdownActivity
+      android.bluetooth.devicepicker.action.LAUNCH:
+        ab60ce6 com.android.settings/.bluetooth.DevicePickerActivity
+      android.settings.DATE_SETTINGS:
+        35a89d25 com.android.settings/.Settings$DateTimeSettingsActivity
+      android.settings.BATTERY_SAVER_SETTINGS:
+        1224a580 com.android.settings/.Settings$BatterySaverSettingsActivity
+      android.settings.NFC_SETTINGS:
+        b761cb5 com.android.settings/.Settings$WirelessSettingsActivity
+
+  MIME Typed Actions:
+      android.service.wallpaper.CROP_AND_SET_WALLPAPER:
+        811fdbf com.android.wallpapercropper/.WallpaperCropActivity
+      android.intent.action.INSTALL_PACKAGE:
+        cb5db19 com.android.packageinstaller/.PackageInstallerActivity
+      android.intent.action.EDIT:
+        12f8b2f4 com.android.settings/.pppoe.PppoeAccountsEditor
+        1569de63 com.android.settings/.ApnEditor
+      android.intent.action.SEND:
+        3680a60 com.android.nfc/.BeamShareActivity
+      android.intent.action.VIEW:
+        cb5db19 com.android.packageinstaller/.PackageInstallerActivity
+        12f8b2f4 com.android.settings/.pppoe.PppoeAccountsEditor
+        1569de63 com.android.settings/.ApnEditor
+        1dec4492 com.android.htmlviewer/.HTMLViewerActivity
+        2f303cc7 com.android.certinstaller/.CertInstallerMain
+        3722ba1d android.rk.RockVideoPlayer/.VideoPlayActivity (3 filters)
+      android.intent.action.SEND_MULTIPLE:
+        3680a60 com.android.nfc/.BeamShareActivity
+      android.intent.action.ACTION_SEND:
+        208617de com.android.captiveportallogin/.CaptivePortalLoginActivity
+      android.intent.action.INSERT:
+        12f8b2f4 com.android.settings/.pppoe.PppoeAccountsEditor
+        1569de63 com.android.settings/.ApnEditor
+      android.nfc.action.NDEF_DISCOVERED:
+        2bb36c8c com.android.managedprovisioning/.DeviceOwnerProvisioningActivity
+
+Receiver Resolver Table:
+  Full MIME Types:
+      */*:
+        d5259c3 android/com.android.server.updates.TZInfoInstallReceiver
+        2755c227 android/com.android.server.updates.CertPinInstallReceiver
+        31d5bcd4 android/com.android.server.updates.IntentFirewallInstallReceiver
+        333bd240 android/com.android.server.updates.SELinuxPolicyInstallReceiver
+        37822e7d android/com.android.server.updates.SmsShortCodesInstallReceiver
+        3e461172 android/com.android.server.updates.CarrierProvisioningUrlsInstallReceiver
+
+  Wild MIME Types:
+      *:
+        d5259c3 android/com.android.server.updates.TZInfoInstallReceiver
+        2755c227 android/com.android.server.updates.CertPinInstallReceiver
+        31d5bcd4 android/com.android.server.updates.IntentFirewallInstallReceiver
+        333bd240 android/com.android.server.updates.SELinuxPolicyInstallReceiver
+        37822e7d android/com.android.server.updates.SmsShortCodesInstallReceiver
+        3e461172 android/com.android.server.updates.CarrierProvisioningUrlsInstallReceiver
+
+  Schemes:
+      android_secret_code:
+        28083579 com.android.settings/.TestingSettingsBroadcastReceiver
+      package:
+        205fd2be com.android.keychain/.KeyChainBroadcastReceiver
+      file:
+        104db035 android.rockchip.update.service/.RKUpdateReceiver (2 filters)
+        182bd26c com.android.providers.media/.MediaScannerReceiver (3 filters)
+        37f6cf1f com.android.externalstorage/.MountReceiver
+      content:
+        d5259c3 android/com.android.server.updates.TZInfoInstallReceiver
+        2755c227 android/com.android.server.updates.CertPinInstallReceiver
+        31d5bcd4 android/com.android.server.updates.IntentFirewallInstallReceiver
+        333bd240 android/com.android.server.updates.SELinuxPolicyInstallReceiver
+        37822e7d android/com.android.server.updates.SmsShortCodesInstallReceiver
+        3e461172 android/com.android.server.updates.CarrierProvisioningUrlsInstallReceiver
+
+  Non-Data Actions:
+      com.android.systemui.recents.action.TOGGLE_RECENTS_FOR_USER:
+        1ac25cca com.android.systemui/.recents.RecentsUserEventProxyReceiver
+      com.android.bts84.otaupgrade:
+        104db035 android.rockchip.update.service/.RKUpdateReceiver
+      android.net.wifi.WIFI_STATE_CHANGED:
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      android.bluetooth.adapter.action.DISCOVERY_FINISHED:
+        539a958 com.android.settings/.bluetooth.BluetoothDiscoveryReceiver
+      org.huiyu.honeybot.action.RecButtonDown:
+        1d361ab1 media.tiger.tigerbox/.services.implementations.receiver.ButtonBroadcastReceiver
+      tiger_box.intent.action.SCREEN_DIMS:
+        2117b96 media.tiger.tigerbox/.services.implementations.receiver.DisplayBroadcastReceiver
+      com.android.inputmethod.dictionarypack.aosp.UPDATE_NOW:
+        211d8317 com.android.inputmethod.latin/com.android.inputmethod.dictionarypack.EventHandler
+      android.intent.action.HEADSET_PLUG:
+        124c0304 media.tiger.tigerbox/.services.implementations.receiver.HeadsetBroadcastReceiver
+      android.bluetooth.adapter.action.STATE_CHANGED:
+        c60b0ed com.android.settings/.bluetooth.DockEventReceiver
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      android.bluetooth.device.action.CONNECTION_ACCESS_CANCEL:
+        3f61bb22 com.android.settings/.bluetooth.BluetoothPermissionRequest
+      android.bluetooth.device.action.CONNECTION_ACCESS_REQUEST:
+        3f61bb22 com.android.settings/.bluetooth.BluetoothPermissionRequest
+      androidx.profileinstaller.action.SAVE_PROFILE:
+        21ed39b3 media.tiger.tigerbox/androidx.profileinstaller.ProfileInstallReceiver
+      android.intent.action.HDMI_PLUG:
+        d084b70 com.android.settings/.HdmiReceiver
+      android.net.conn.CONNECTIVITY_CHANGE:
+        104db035 android.rockchip.update.service/.RKUpdateReceiver
+      android.intent.action.STATISTICS_REPORT:
+        1c246ee9 com.android.settings/.DeviceInfo$StatsReportReceiver
+      android.app.action.DEVICE_ADMIN_ENABLED:
+        684676e media.tiger.tigerbox/.TigerBoxDeviceAdminReceiver
+      android.location.MODE_CHANGED:
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      android.hardware.usb.action.USB_STATE:
+        af7be0f com.android.providers.media/.MtpReceiver
+        104db035 android.rockchip.update.service/.RKUpdateReceiver
+      com.android.bts84.Abnormal_current:
+        35feae9c media.tiger.tigerbox/.services.implementations.receiver.SafeguardBroadcastReceiver
+      android.intent.action.USER_INITIALIZE:
+        25138c7a com.android.inputmethod.latin/.SystemBroadcastReceiver
+        3f4c10a5 com.android.settings/.ManagedProfileSetup
+      com.android.systemui.recents.action.PRELOAD_RECENTS_FOR_USER:
+        1ac25cca com.android.systemui/.recents.RecentsUserEventProxyReceiver
+      android.hardware.input.action.QUERY_KEYBOARD_LAYOUTS:
+        1e7c2c2b com.android.inputdevices/.InputDeviceReceiver
+      android.bluetooth.device.action.PAIRING_REQUEST:
+        24961888 com.android.settings/.bluetooth.BluetoothPairingRequest
+      android.intent.action.MASTER_CLEAR:
+        10921221 android/com.android.server.MasterClearReceiver
+      android.provider.Contacts.PROFILE_CHANGED:
+        363df646 com.android.settings/.users.ProfileUpdateReceiver
+      com.android.systemui.recents.action.HIDE_RECENTS_FOR_USER:
+        1ac25cca com.android.systemui/.recents.RecentsUserEventProxyReceiver
+      android.intent.action.LOCALE_CHANGED:
+        25138c7a com.android.inputmethod.latin/.SystemBroadcastReceiver
+      android.bluetooth.adapter.action.DISCOVERY_STARTED:
+        539a958 com.android.settings/.bluetooth.BluetoothDiscoveryReceiver
+      android.bluetooth.a2dp.action.SINK_STATE_CHANGED:
+        c60b0ed com.android.settings/.bluetooth.DockEventReceiver
+      org.huiyu.honeybot.action.RecButtonUp:
+        1d361ab1 media.tiger.tigerbox/.services.implementations.receiver.ButtonBroadcastReceiver
+      androidx.profileinstaller.action.INSTALL_PROFILE:
+        21ed39b3 media.tiger.tigerbox/androidx.profileinstaller.ProfileInstallReceiver
+      com.google.android.c2dm.intent.RECEIVE:
+        10921221 android/com.android.server.MasterClearReceiver
+      android.net.wifi.WIFI_AP_STATE_CHANGED:
+        398f6007 com.android.settings/.HotspotOffReceiver
+        3db83534 com.android.systemui/.qs.tiles.HotspotTile$APChangedReceiver
+      androidx.profileinstaller.action.SKIP_FILE:
+        21ed39b3 media.tiger.tigerbox/androidx.profileinstaller.ProfileInstallReceiver
+      android.appwidget.action.APPWIDGET_DISABLED:
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      android.net.conn.BACKGROUND_DATA_SETTING_CHANGED:
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      android.bluetooth.intent.DISCOVERABLE_TIMEOUT:
+        1dcaf5d com.android.settings/.bluetooth.BluetoothDiscoverableTimeoutReceiver
+      android.text.style.SUGGESTION_PICKED:
+        75330d2 com.android.inputmethod.latin/.SuggestionSpanPickedNotificationReceiver
+      androidx.profileinstaller.action.BENCHMARK_OPERATION:
+        21ed39b3 media.tiger.tigerbox/androidx.profileinstaller.ProfileInstallReceiver
+      android.intent.action.PRE_BOOT_COMPLETED:
+        bb7f5a3 com.android.managedprovisioning/.PreBootListener
+        293d70a0 com.android.providers.media/.MediaUpgradeReceiver
+        3f4c10a5 com.android.settings/.ManagedProfileSetup
+      com.android.systemui.recent.action.CANCEL_PRELOAD:
+        339e459 com.android.systemui/.recent.RecentsPreloadReceiver
+      android.intent.action.BOOT_COMPLETED:
+        af7be0f com.android.providers.media/.MtpReceiver
+        d084b70 com.android.settings/.HdmiReceiver
+        104db035 android.rockchip.update.service/.RKUpdateReceiver
+        182bd26c com.android.providers.media/.MediaScannerReceiver
+        1d9b6d15 com.android.systemui/.BootReceiver
+        25138c7a com.android.inputmethod.latin/.SystemBroadcastReceiver
+        2c4a48ff com.android.managedprovisioning/.BootReminder
+        3218f6cc com.android.settings/.sim.SimBootReceiver
+        390f881e android/com.android.server.BootReceiver
+      android.settings.SHOW_INPUT_METHOD_PICKER:
+        29a8082a com.android.settings/.inputmethod.InputMethodDialogReceiver
+      android.intent.action.BUGREPORT_FINISHED:
+        2984761b com.android.shell/.BugreportReceiver
+      android.intent.action.USER_SWITCHED:
+        182bd26c com.android.providers.media/.MediaScannerReceiver
+        3d44b3b8 com.android.rk.mediafloat/.MultiUserReceiver
+      android.intent.action.DATE_CHANGED:
+        211d8317 com.android.inputmethod.latin/com.android.inputmethod.dictionarypack.EventHandler
+      com.android.systemui.recents.action.SHOW_RECENTS_FOR_USER:
+        1ac25cca com.android.systemui/.recents.RecentsUserEventProxyReceiver
+      com.android.systemui.recent.action.PRELOAD:
+        339e459 com.android.systemui/.recent.RecentsPreloadReceiver
+      android.intent.action.DOWNLOAD_COMPLETE:
+        211d8317 com.android.inputmethod.latin/com.android.inputmethod.dictionarypack.EventHandler
+      org.huiyu.honeybot.action.ReadButton:
+        1d361ab1 media.tiger.tigerbox/.services.implementations.receiver.ButtonBroadcastReceiver
+      android.bluetooth.headset.action.STATE_CHANGED:
+        c60b0ed com.android.settings/.bluetooth.DockEventReceiver
+      android.bluetooth.device.action.PAIRING_CANCEL:
+        24961888 com.android.settings/.bluetooth.BluetoothPairingRequest
+      android.appwidget.action.APPWIDGET_ENABLED:
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      android.appwidget.action.APPWIDGET_UPDATE:
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      com.android.systemui.recents.action.CONFIG_CHANGED_FOR_USER:
+        1ac25cca com.android.systemui/.recents.RecentsUserEventProxyReceiver
+      com.android.inputmethod.dictionarypack.aosp.UNKNOWN_CLIENT:
+        3d52c591 com.android.inputmethod.latin/.DictionaryPackInstallBroadcastReceiver
+      android.intent.action.MY_PACKAGE_REPLACED:
+        25138c7a com.android.inputmethod.latin/.SystemBroadcastReceiver
+      screen_dims_status:
+        2117b96 media.tiger.tigerbox/.services.implementations.receiver.DisplayBroadcastReceiver
+      com.android.sync.SYNC_CONN_STATUS_CHANGED:
+        2b433e3b com.android.settings/.widget.SettingsAppWidgetProvider
+      android.intent.action.DOCK_EVENT:
+        c60b0ed com.android.settings/.bluetooth.DockEventReceiver
+      tigerbox_go_home:
+        1d361ab1 media.tiger.tigerbox/.services.implementations.receiver.ButtonBroadcastReceiver
+      android.bluetooth.device.action.BOND_STATE_CHANGED:
+        24961888 com.android.settings/.bluetooth.BluetoothPairingRequest
+      com.android.inputmethod.latin.personalization.DICT_DECAY:
+        33967cf6 com.android.inputmethod.latin/.personalization.DictionaryDecayBroadcastReciever
+
+  MIME Typed Actions:
+      android.intent.action.UPDATE_PINS:
+        2755c227 android/com.android.server.updates.CertPinInstallReceiver
+      android.intent.action.UPDATE_SMS_SHORT_CODES:
+        37822e7d android/com.android.server.updates.SmsShortCodesInstallReceiver
+      android.intent.action.UPDATE_TZINFO:
+        d5259c3 android/com.android.server.updates.TZInfoInstallReceiver
+      android.intent.action.UPDATE_INTENT_FIREWALL:
+        31d5bcd4 android/com.android.server.updates.IntentFirewallInstallReceiver
+      android.intent.action.UPDATE_CARRIER_PROVISIONING_URLS:
+        3e461172 android/com.android.server.updates.CarrierProvisioningUrlsInstallReceiver
+      android.intent.action.UPDATE_SEPOLICY:
+        333bd240 android/com.android.server.updates.SELinuxPolicyInstallReceiver
+
+Service Resolver Table:
+  Full MIME Types:
+      video/3gpp:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (2 filters)
+      video/3gpp2:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (2 filters)
+      */*:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService
+      video/x-flv:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (2 filters)
+      video/*:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService
+      video/3gp:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (2 filters)
+      video/flv:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (2 filters)
+      video/mp4:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (2 filters)
+
+  Base MIME Types:
+      video:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (12 filters)
+
+  Wild MIME Types:
+      *:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService
+      video:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService
+
+  Schemes:
+      http:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService
+      rtsp:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (2 filters)
+
+  Non-Data Actions:
+      android.rockchip.update.service:
+        36d5364 android.rockchip.update.service/.RKUpdateService
+      android.media.IMediaScannerService:
+        284d29cd com.android.providers.media/.MediaScannerService
+      android.view.InputMethod:
+        d257282 com.android.inputmethod.latin/.LatinIME
+      android.service.dreams.DreamService:
+        14618d93 com.android.systemui/.DessertCaseDream
+        395e41d0 com.android.dreams.basic/.Colors
+      android.service.textservice.SpellCheckerService:
+        1c0f95c9 com.android.inputmethod.latin/.spellcheck.AndroidSpellCheckerService
+      com.android.internal.telephony.IWapPushManager:
+        14bc34ce com.android.smspush/.WapPushManager
+      android.backup.TRANSPORT_HOST:
+        118d6fef android/com.android.internal.backup.LocalTransportService
+      android.security.IKeyChainService:
+        132daafc com.android.keychain/.KeyChainService
+      com.android.location.service.FusedLocationProvider:
+        f72c585 com.android.location.fused/.FusedLocationService
+      com.rk.app.mediafloat.CUSTOM_ACTION:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService
+      android.service.wallpaper.WallpaperService:
+        e287ae8 com.android.noisefield/.NoiseFieldWallpaper
+        13360fa6 com.android.musicvis/.vis2.Visualization2
+        13c9203d com.android.musicvis/.vis5.Visualization5
+        141f3501 com.android.phasebeam/.PhaseBeamWallpaper
+        15eacfda com.android.wallpaper.holospiral/.HoloSpiralWallpaper
+        272d6de7 com.android.musicvis/.vis3.Visualization3
+        2d7e5d94 com.android.musicvis/.vis4.Visualization4
+        3ceb1c0b com.android.wallpaper/.polarclock.PolarClockWallpaper
+
+  MIME Typed Actions:
+      com.rk.app.mediafloat.CUSTOM_ACTION:
+        2d6a58f7 com.android.rk.mediafloat/.MediaFloatService (4 filters)
+
+Provider Resolver Table:
+  Non-Data Actions:
+      android.content.action.DOCUMENTS_PROVIDER:
+        f590183 com.android.externalstorage/.TestDocumentsProvider
+        15adbf00 com.android.providers.media/.MediaDocumentsProvider
+        20a38032 com.android.externalstorage/.ExternalStorageProvider
+      android.content.action.SEARCH_INDEXABLES_PROVIDER:
+        252c8339 com.android.settings/.search.SettingsSearchIndexablesProvider

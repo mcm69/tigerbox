@@ -355,10 +355,10 @@ Gotchas hit on the way:
   2023 one. Kernel and U-Boot build dates (Jul 13-15 2026) match.
 - **userdebug + ro.debuggable=1** means `adb root` should restart adbd as
   root - no UART or su needed for future sessions.
-- **test-keys**: Android-level signing uses the public AOSP test keys
-  (separate from the locked Rockchip secure-boot chain). Not needed now
-  that we have root, but notable: anything signed with the AOSP platform
-  test key gets system privileges on this build.
+- **test-keys** is only a build tag here. CORRECTED 2026-11-23: the
+  platform certificate (SHA-256 2d370c21...) is NOT AOSP's public test
+  key (C8:A2:E9:BC...), just a private key with the AOSP name copied onto
+  it. We cannot sign apps as system; root + writable /system cover that.
 - `/system` is **already mounted rw** (ext4). No remount, no dm-verity.
 - su: `/system/xbin/su`, setuid root, group shell (mode rwsr-x---).
 - by-name symlinks match logs/partitions.md exactly; system = mmcblk0p11.
@@ -434,3 +434,19 @@ launcher; the OEM apps get disabled (`pm disable`, reversible), not deleted.
 Only `android-sdk-license` is accepted (approved 2026-11-23). sdkmanager's
 `--licenses` accepts every listed license at once; the extras were removed
 afterwards. Accept others individually if a future package needs them.
+
+## eMMC backup DONE and verified (2026-11-23)
+
+`dump/mmcblk0.img`, 7.8 GB, gitignored. 13 of 14 regions are byte-identical
+to the live device; userdata differs only because /data is live. Details
+and the CORRECTED partition table in logs/partitions.md.
+
+**Correction:** the partition offsets first derived from the kernel
+cmdline were 4 MB too low. Real starts come from
+/sys/block/mmcblk0/mmcblk0pN/start; logs/partitions.md is now fixed.
+
+## Device survey (2026-11-23)
+
+Full read-only survey in **SURVEY.md**: memory and what to disable, music
+storage, the card-reader protocol, buttons, LEDs, screen, and the update
+path. Raw evidence in survey/raw/.

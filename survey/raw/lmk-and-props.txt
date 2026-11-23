@@ -1,0 +1,24 @@
+/system/bin/sh: cat: /sys/module/lowmemorykiller/parameters/minfree: Permission denied
+minfree=
+/system/bin/sh: cat: /sys/module/lowmemorykiller/parameters/adj: Permission denied
+adj=
+--- swaps
+Filename				Type		Size	Used	Priority
+/dev/block/zram0                        partition	65532	10568	-1
+--- zram
+zram0
+brw------- root     root     254,   0 2015-01-21 09:50 zram0
+--- props
+[dalvik.vm.heapgrowthlimit]: [150m]
+[dalvik.vm.heapmaxfree]: [8m]
+[dalvik.vm.heapminfree]: [512k]
+[dalvik.vm.heapsize]: [384m]
+[dalvik.vm.heapstartsize]: [8m]
+[dalvik.vm.heaptargetutilization]: [0.75]
+[init.svc.lmkd]: [running]
+[ro.config.alarm_alert]: [Alarm_Classic.ogg]
+[ro.config.enable.remotecontrol]: [false]
+[ro.config.notification_sound]: [pixiedust.ogg]
+[ro.config.ringtone]: [Ring_Synth_04.ogg]
+[ro.sf.lcd_density]: [160]
+[ro.sf.lcdc_composer]: [0]

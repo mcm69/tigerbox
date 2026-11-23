@@ -1,0 +1,3 @@
+--- sysfs attrs from kernel log
+/sys/devices/2006c000.adc/key.21/input/input2/capabilities/led
+/sys/devices/pwmleds.20/time_off

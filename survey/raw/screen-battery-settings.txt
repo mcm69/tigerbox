@@ -1,0 +1,23 @@
+Physical size: 800x480
+Physical density: 160
+    mPhys=PhysicalDisplayInfo{800 x 480, 60.537003 fps, density 1.0, 160.0 x 160.42105 dpi, secure true, appVsyncOffset 0, bufferDeadline 17518823}
+    mBaseDisplayInfo=DisplayInfo{"Integrierter Bildschirm", uniqueId "local:0", app 800 x 480, real 800 x 480, largest app 800 x 480, smallest app 800 x 480, 60.537003 fps, supportedRefreshRates [60.537003], rotation 0, density 160 (160.0 x 160.42105) dpi, layerStack 0, appVsyncOff 0, presDeadline 17518823, type BUILT_IN, state OFF, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS}
+--- battery
+Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  status: 2
+  health: 2
+  present: true
+  level: 80
+  scale: 100
+  voltage: 4118
+  temperature: 188
+  technology: 
+--- settings
+screen_off_timeout=60000
+stay_on_while_plugged_in=0
+wifi_on=1
+bluetooth_on=0
+adb_enabled=1

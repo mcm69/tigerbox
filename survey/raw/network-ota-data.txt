@@ -1,0 +1,64 @@
+--- wlan0
+3: wlan0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN qlen 1000
+--- default route
+--- update-ish props
+[init.svc.bootanim]: [stopped]
+[ro.product.ota.host]: [www.rockchip.com:2300]
+[ro.sf.fakerotation]: [false]
+[ro.sf.hwrotation]: [90]
+[service.bootanim.exit]: [1]
+--- RKUpdateService data
+
+/data/data/android.rockchip.update.service/:
+drwxrwx--x u0_a24   u0_a24            2026-11-06 10:41 cache
+lrwxrwxrwx install  install           2026-11-06 10:41 lib -> /data/app-lib/android.rockchip.update.service
+
+/data/data/android.rockchip.update.service//cache:
+--- /cache
+drwxrwx--- root     root              1970-01-01 01:00 lost+found
+drwxrwx--- system   cache             2015-01-21 09:50 recovery
+-rw-r--r-- root     root            0 2026-11-06 10:44 last_install
+-rw------- system   system      58039 2026-11-06 10:44 last_kmsg
+-rw------- root     root            5 2026-11-06 10:44 last_locale
+-rw-r----- root     root            0 2026-11-06 10:44 last_log
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.1
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.10
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.2
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.3
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.4
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.5
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.6
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.7
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.8
+-rw-r----- root     root            0 2026-11-06 10:39 last_log.9
+--- tigerbox data dir (names only)
+drwxrwx--x system   system            2015-01-21 09:51 cache
+drwx------ system   system            2026-11-06 10:41 databases
+drwxrwx--x system   system            2026-11-06 10:41 files
+lrwxrwxrwx install  install           2026-11-06 10:41 lib -> /data/app-lib/media.tiger.tigerbox
+drwxrwx--x system   system            2015-01-21 10:48 shared_prefs
+-rw-rw---- system   system       1902 2015-01-21 10:48 TIGER_PREFS.xml
+-rw------- system   system       4096 2026-11-06 10:41 tigerboxDatabase
+-rw------- system   system      32768 2015-01-21 09:51 tigerboxDatabase-shm
+-rw------- system   system     313152 2015-01-21 09:51 tigerboxDatabase-wal
+--- sdcard top level
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Alarms
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 DCIM
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Download
+drwxrwx--- root     sdcard_r          2015-01-21 10:42 Logs_Reports
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Movies
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Music
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Notifications
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Pictures
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Podcasts
+drwxrwx--- root     sdcard_r          2026-11-06 10:41 Ringtones
+4.0K	/sdcard/Alarms
+4.0K	/sdcard/DCIM
+4.0K	/sdcard/Download
+324.0K	/sdcard/Logs_Reports
+4.0K	/sdcard/Movies
+4.0K	/sdcard/Music
+4.0K	/sdcard/Notifications
+4.0K	/sdcard/Pictures
+4.0K	/sdcard/Podcasts
+4.0K	/sdcard/Ringtones

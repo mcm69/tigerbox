@@ -8,3 +8,8 @@
 dump/
 
 .DS_Store
+
+# Vendor binaries and their decompiled source - copyrighted, never commit
+*.apk
+survey/apks/
+survey/decompiled/

@@ -1,0 +1,5 @@
+<6>[   31.061505] lowmemorykiller: Killing 'd.process.acore' (878), adj 1000,
+<6>[   31.236142] lowmemorykiller: Killing 'externalstorage' (656), adj 1000,
+<6>[   31.946182] lowmemorykiller: Killing 'ndroid.keychain' (933), adj 764,
+<6>[   32.120882] lowmemorykiller: Killing 'gedprovisioning' (975), adj 647,
+<6>[   32.481568] lowmemorykiller: Killing 'ndroid.settings' (954), adj 529,

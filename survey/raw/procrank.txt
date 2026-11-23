@@ -1,0 +1,32 @@
+  PID       Vss      Rss      Pss      Uss  cmdline
+  810  1318580K  100276K   70743K   64660K  media.tiger.tigerbox
+  392  1196548K   50812K   32061K   27476K  system_server
+  571  1255556K   48580K   20406K   15020K  com.android.systemui
+  694   752896K   28700K    9982K    6980K  com.android.inputmethod.latin
+  533   741516K   26492K    8187K    4824K  android.process.media
+  626   738192K   21092K    6627K    4384K  android.rockchip.update.service
+  788   740684K   24632K    5747K    2472K  com.android.nfc
+  166  1207996K   24852K    5152K    1424K  zygote
+  160   138988K    2916K    1586K    1408K  /system/bin/mediaserver
+  155    58892K    2708K    1561K    1344K  /system/bin/surfaceflinger
+  150    18636K    1384K     904K     864K  /system/bin/logd
+  570    12572K    1304K     762K     684K  /system/bin/wpa_supplicant_rtl
+ 1252     9188K     988K     693K     676K  procrank
+ 1072    16980K     464K     373K     372K  /sbin/adbd
+    1     8860K     548K     354K     220K  /init
+  157    26924K     804K     346K     312K  /system/bin/netd
+  151     9836K     320K     288K     288K  /sbin/healthd
+  136     8856K     428K     260K     128K  /sbin/ueventd
+  167    15404K     596K     215K     200K  /system/bin/sdcard
+  154    19120K     716K     170K     132K  /system/bin/vold
+  153     9456K     528K     162K     144K  /system/bin/servicemanager
+  152    10620K     504K      75K      48K  /system/bin/lmkd
+  161     9412K     460K      70K      52K  /system/bin/installd
+  159    24248K     656K      51K       8K  /system/bin/drmserver
+  163    12496K     608K      50K       8K  /system/bin/keystore
+  158    10092K     548K      23K       4K  /system/bin/debuggerd
+  156     9320K     344K      17K       4K  /system/bin/sh
+                           ------   ------  ------
+                          166881K  134136K  TOTAL
+
+RAM: 503888K total, 15824K free, 195060K buffers, 63772K cached, 208K shmem, 23216K slab

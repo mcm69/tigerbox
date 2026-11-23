@@ -1,0 +1,75 @@
+feature:android.hardware.audio.low_latency
+feature:android.hardware.audio.output
+feature:android.hardware.bluetooth
+feature:android.hardware.bluetooth_le
+feature:android.hardware.camera
+feature:android.hardware.camera.any
+feature:android.hardware.camera.autofocus
+feature:android.hardware.camera.flash
+feature:android.hardware.camera.front
+feature:android.hardware.location
+feature:android.hardware.location.gps
+feature:android.hardware.location.network
+feature:android.hardware.nfc
+feature:android.hardware.nfc.hce
+feature:android.hardware.touchscreen
+feature:android.hardware.touchscreen.multitouch
+feature:android.hardware.touchscreen.multitouch.distinct
+feature:android.hardware.touchscreen.multitouch.jazzhand
+feature:android.hardware.usb.accessory
+feature:android.hardware.usb.host
+feature:android.hardware.wifi
+feature:android.hardware.wifi.direct
+--- nfc props
+[debug.nfc.fw_download]: [false]
+[debug.nfc.se]: [false]
+[ro.nfc.port]: [I2C]
+--- nfc devs
+crwxrwxrwx root     root       4,  64 2015-01-21 09:56 ttyS0
+crw------- root     root       4,  65 2015-01-21 09:50 ttyS1
+--- dumpsys nfc
+mState=off
+mIsZeroClickRequested=true
+mScreenState=OFF
+mNfcPollingEnabled=false
+mNfceeRouteEnabled=false
+mOpenEe=null
+mIsAirplaneSensitive=true
+mIsAirplaneToggleable=true
+mLockscreenPollMask=0
+mTechMask: 0
+mEnableLPD: true
+mEnableReader: false
+mEnableHostRouting: false
+mEnableP2p: false
+mIsSendEnabled=false
+mIsReceiveEnabled=false
+mLinkState=LINK_STATE_DOWN
+mSendState=SEND_STATE_NOTHING_TO_SEND
+mCallbackNdef=null
+mMessageToSend=null
+mUrisToSend=null
+Registered HCE services for current user: 
+
+Preferred services (in order of importance): 
+    *** Current preferred foreground service: null
+    *** Current preferred payment service: null
+        Next tap default: null
+        Default for foreground app (UID: 0): null
+        Default in payment settings: null
+        Payment settings allows override: false
+
+    AID cache entries: 
+    Service preferred by foreground app: null
+    Preferred payment service: null
+
+Routing table:
+    Default route: host
+
+Bound services: 
+mNfceeAccess=
+mNfceeUidCache=
+mOverrideIntent=null
+mOverrideFilters=null
+mOverrideTechLists=null
+libnfc llc error_count=0
