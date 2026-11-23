@@ -14,6 +14,9 @@ are in `survey/apks/` and `survey/decompiled/` (gitignored, copyrighted).
 - **~5.5 GB is usable for music** — roughly 95 hours at 128 kbps.
 - **The card reader is easy to use from our own app**: a world-readable
   device file plus two broadcasts. No root or special permission needed.
+  Confirmed live with a transit card.
+- **The big button is the power key**, so it can't be a plain play/pause
+  key without more work (section 4).
 - **Updates come from the tigerbox app + RKUpdateService together.**
   The box has no Wi-Fi network saved, so nothing can arrive right now.
 - **We can't sign apps with the platform key** — it isn't AOSP's public
@@ -168,13 +171,43 @@ installed but switched off and plays no part.
 - We only need the UID. Any NTAG213/215 sticker or card has one, so cards
   map **UID → folder** with no data written to the card.
 
-**Open item — needs one card tap with you present:** the reader's kernel
-keys (`KEY_KP1`/`KEY_KP2`) map to `NUMPAD_1`/`NUMPAD_2` through
-`Generic.kl`, yet the key handler sends the broadcasts on
-`DPAD_DOWN` / `MOVE_END`. Something in between doesn't add up, and no card
-has been placed since boot, so the logs can't settle it. To check:
-`adb logcat -s 'phm---------'` and `adb shell getevent -l` while placing and
-lifting a card.
+### Confirmed live (2026-11-23, with a transit card)
+
+Captures in [`survey/raw/live/`](survey/raw/live/).
+
+| Card | Kernel events | Broadcast |
+|---|---|---|
+| placed | `KEY_KP1` on the reader + `KEY_WAKEUP` on the keypad, same instant | `com.android.bts84.nfcin` |
+| lifted | `KEY_KP2` + `KEY_WAKEUP` | `com.android.bts84.nfcout` |
+
+So the path works end to end. (On paper `KP1`/`KP2` map to
+`NUMPAD_1`/`NUMPAD_2` while the handler checks other key codes; whatever
+reconciles the two, it works, and our app only needs the broadcasts.)
+
+**The UID frame, worked out from a real read.** The last 10 bytes are the
+card's anticollision data:
+
+| UID size | Last 10 bytes | UID |
+|---|---|---|
+| 4 bytes (transit card, MIFARE-type fobs) | `U0 U1 U2 U3 BCC 00 00 00 00 00` | bytes 0–3 |
+| 7 bytes (tiger cards, NTAG) | `88 U0 U1 U2 BCC0 U3 U4 U5 U6 BCC1` | bytes 1–3, 5–8 |
+
+`BCC` is the XOR of the bytes before it (for 7-byte UIDs, BCC0 also covers
+the `88` cascade tag) — it checked out on the transit card. The stock app's
+"drop hex positions 0, 1, 8, 9, 18, 19" rule is just the 7-byte case and
+mangles 4-byte UIDs. **Our parser: check for `88`, take the right bytes,
+verify the BCC, reject an all-zero frame.**
+
+The transit card's data area came back empty (`04` then zeros) — it isn't an
+NTAG, so it carries no NDEF payload, and the stock app failed to parse it
+(`StringIndexOutOfBoundsException`). Its UID is masked in the saved capture.
+
+Two side observations:
+- The card **wakes the box**: the reader raises `KEY_WAKEUP` alongside its
+  own key. Placing a card can start playback from sleep.
+- **SELinux logs the read as denied** (`/dev/mf175x` has the generic
+  `device` label) but allows it, because it's permissive. Fine as long as
+  the box stays permissive — and it's set on the kernel command line.
 
 ---
 
@@ -201,11 +234,35 @@ normal key events:
 | SWITCH_CHARSET | `org.huiyu.honeybot.action.RecButtonDown` / `…RecButtonUp` |
 | MEDIA_RECORD | `com.android.bts84.Abnormal_current` (current-fault alarm) |
 
-My guess is that the big tiger button sends PAGE_DOWN on a short press and
-PAGE_UP on a long one, which would make `short_down`/`long_down` the
-play/pause events. **Unconfirmed — needs a button press each while running
-`adb shell getevent -l`.** (`honeybot` looks left over from an earlier
-product on the same platform.)
+**Confirmed live: the big tiger button is the power key.** It's wired to
+the PMIC (`rk816_pwrkey`, `/dev/input/event1`) and sends plain
+`KEY_POWER` — short and long presses alike; only the hold time differs
+(0.07–0.21 s vs 2.7 s). My guess that it sends `short_down`/`long_down` was
+wrong. The keypad's PAGE_UP / PAGE_DOWN / PICTSYMBOLS / SWITCH_CHARSET
+entries have no physical button on the PLUS; they're leftovers from other
+products on this platform (`honeybot` included). The only other button is
+RESET, which we didn't press.
+
+What that means for our app: Android handles POWER before any app sees it
+— a short press toggles the screen (and the tigerbox app treats that as
+sleep/wake, logging `RESTART FROM SLEEP - SHOULD TURN ON NFC AND BT`), a
+long press opens the power-off menu. **The button can't be a plain
+play/pause key without changing how POWER is handled.** Options, to decide
+at build time: use the screen-on/off broadcasts it already causes; or use
+the touchscreen for play/pause and leave the button as power. Changing
+POWER itself would mean modifying `android.policy.jar` on `/system` — a
+bigger, riskier change.
+
+**Probably the best option:** the power key currently falls back to
+`Generic.kl`, because there is no `rk816_pwrkey.kl`. Android prefers a
+layout file named after the device, so adding
+`/system/usr/keylayout/rk816_pwrkey.kl` with
+`key 116 MEDIA_PLAY_PAUSE WAKE` would make the button a real play/pause key
+that still wakes the box. Undoing it is deleting one file. The catch: the
+box loses its software power key, so our app would have to provide
+long-press → power off itself (`android.permission.SHUTDOWN`, which needs
+the app in `/system/priv-app`). Untested — and needs a fallback plan before
+trying it, since ADB stays available either way.
 
 ### Lights
 
@@ -294,9 +351,11 @@ Wi-Fi, so it can stay off.
 
 Nothing below has been done; it's the plan this survey supports.
 
-1. **Live checks with you present** (read-only): tap a card, press each
-   button — settles the two open items above.
-2. **Build our launcher app** and install it.
+1. ~~Live checks with you present~~ — done 2026-11-23: card path confirmed,
+   button is POWER. Still to do with real NTAG stickers: one tap to see a
+   7-byte UID and NDEF data.
+2. **Build our launcher app** and install it. Decide first how the button
+   should behave (section 4).
 3. **Make it the HOME app**, then disable `media.tiger.tigerbox`.
 4. Disable `android.rockchip.update.service`, `com.android.nfc`,
    `com.android.managedprovisioning`, `com.android.rk.mediafloat`, and

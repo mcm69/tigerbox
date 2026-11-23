@@ -1,0 +1,44 @@
+add device 1: /dev/input/event0
+  name:     "gslX680"
+add device 2: /dev/input/event3
+  name:     "mf175x"
+add device 3: /dev/input/event1
+  name:     "rk816_pwrkey"
+add device 4: /dev/input/event2
+  name:     "rk29-keypad"
+[    4411.332483] /dev/input/event1: EV_KEY       KEY_POWER            DOWN                
+[    4411.332483] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4411.547096] /dev/input/event1: EV_KEY       KEY_POWER            UP                  
+[    4411.547096] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4424.422465] /dev/input/event1: EV_KEY       KEY_POWER            DOWN                
+[    4424.422465] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4427.164344] /dev/input/event1: EV_KEY       KEY_POWER            UP                  
+[    4427.164344] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4442.141247] /dev/input/event1: EV_KEY       KEY_POWER            DOWN                
+[    4442.141247] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4442.210443] /dev/input/event1: EV_KEY       KEY_POWER            UP                  
+[    4442.210443] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4454.218310] /dev/input/event1: EV_KEY       KEY_POWER            DOWN                
+[    4454.218310] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4454.278890] /dev/input/event1: EV_KEY       KEY_POWER            UP                  
+[    4454.278890] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4461.282587] /dev/input/event1: EV_KEY       KEY_POWER            DOWN                
+[    4461.282587] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4461.363505] /dev/input/event1: EV_KEY       KEY_POWER            UP                  
+[    4461.363505] /dev/input/event1: EV_SYN       SYN_REPORT           00000000            
+[    4469.646306] /dev/input/event3: EV_KEY       KEY_KP1              DOWN                
+[    4469.639076] /dev/input/event2: EV_KEY       KEY_WAKEUP           DOWN                
+[    4469.646306] /dev/input/event3: EV_SYN       SYN_REPORT           00000000            
+[    4469.639076] /dev/input/event2: EV_SYN       SYN_REPORT           00000000            
+[    4469.646394] /dev/input/event3: EV_KEY       KEY_KP1              UP                  
+[    4469.639180] /dev/input/event2: EV_KEY       KEY_WAKEUP           UP                  
+[    4469.646394] /dev/input/event3: EV_SYN       SYN_REPORT           00000000            
+[    4469.639180] /dev/input/event2: EV_SYN       SYN_REPORT           00000000            
+[    4509.279603] /dev/input/event2: EV_KEY       KEY_WAKEUP           DOWN                
+[    4509.279603] /dev/input/event2: EV_SYN       SYN_REPORT           00000000            
+[    4509.279764] /dev/input/event2: EV_KEY       KEY_WAKEUP           UP                  
+[    4509.279764] /dev/input/event2: EV_SYN       SYN_REPORT           00000000            
+[    4509.286862] /dev/input/event3: EV_KEY       KEY_KP2              DOWN                
+[    4509.286862] /dev/input/event3: EV_SYN       SYN_REPORT           00000000            
+[    4509.286987] /dev/input/event3: EV_KEY       KEY_KP2              UP                  
+[    4509.286987] /dev/input/event3: EV_SYN       SYN_REPORT           00000000            

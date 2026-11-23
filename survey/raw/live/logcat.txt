@@ -1,0 +1,16 @@
+01-21 11:03:49.723 I/RestartServicesSafely(  810): RESTART FROM SLEEP - SHOULD TURN ON NFC AND BT
+01-21 11:04:20.206 I/RestartServicesSafely(  810): RESTART FROM SLEEP - SHOULD TURN ON NFC AND BT
+01-21 11:04:39.015 I/RestartServicesSafely(  810): RESTART FROM SLEEP - SHOULD TURN ON NFC AND BT
+01-21 11:04:47.195 D/phm---------(  392): com.android.bts84.nfcin
+01-21 11:04:47.198 I/NfcBroadcastReceiver(  810): NfcBroadcastReceiver media.tiger.tigerbox.TigerBoxApplication@1b946e4f onReceive intent Intent { act=com.android.bts84.nfcin flg=0x10 }
+01-21 11:04:47.202 I/Nfc     (  810): handleAction: com.android.bts84.nfcin intent: Intent { act=com.android.bts84.nfcin flg=0x10 }
+01-21 11:04:47.252 I/Nfc     (  810): detected new nfc event
+01-21 11:04:47.250 I/.tiger.tigerbox(  810): type=1400 audit(0.0:12): avc: denied { read } for name="mf175x" dev="tmpfs" ino=7320 scontext=u:r:system_app:s0 tcontext=u:object_r:device:s0 tclass=chr_file permissive=1
+01-21 11:04:47.250 I/.tiger.tigerbox(  810): type=1400 audit(0.0:13): avc: denied { open } for path="/dev/mf175x" dev="tmpfs" ino=7320 scontext=u:r:system_app:s0 tcontext=u:object_r:device:s0 tclass=chr_file permissive=1
+01-21 11:04:47.250 I/.tiger.tigerbox(  810): type=1400 audit(0.0:14): avc: denied { getattr } for path="/dev/mf175x" dev="tmpfs" ino=7320 scontext=u:r:system_app:s0 tcontext=u:object_r:device:s0 tclass=chr_file permissive=1
+01-21 11:04:47.264 E/HardwareNfcService(  810): Nfc: Could not parse nfc bytes java.lang.StringIndexOutOfBoundsException: length=212; regionStart=14; regionLength=-2
+01-21 11:05:17.136 I/RestartServicesSafely(  810): RESTART FROM SLEEP - SHOULD TURN ON NFC AND BT
+01-21 11:05:26.758 D/phm---------(  392): com.android.bts84.nfcout
+01-21 11:05:26.760 I/NfcBroadcastReceiver(  810): NfcBroadcastReceiver media.tiger.tigerbox.TigerBoxApplication@1b946e4f onReceive intent Intent { act=com.android.bts84.nfcout flg=0x10 }
+01-21 11:05:26.763 I/Nfc     (  810): handleAction: com.android.bts84.nfcout intent: Intent { act=com.android.bts84.nfcout flg=0x10 }
+01-21 11:05:26.817 I/RestartServicesSafely(  810): RESTART FROM SLEEP - SHOULD TURN ON NFC AND BT

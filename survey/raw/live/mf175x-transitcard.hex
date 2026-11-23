@@ -1,0 +1,9 @@
+00000000  04 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+00000010  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00000060  U0 U1 U2 U3 BC 00 00 00  00 00                    |..........|
+0000006a
+
+# UID bytes masked (U0-U3) - it is a real transit card. BC = BCC checksum
+# byte, verified on the original: U0^U1^U2^U3 == BC. Byte 0 read 0x04, data
+# area all zero: a transit card is not an NTAG, so there is no NDEF payload.
