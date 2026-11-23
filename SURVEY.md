@@ -289,6 +289,26 @@ accepted):
 | Tiger head, `laohutou_status` 0 → 71 → 0 | **works** — brightness changes in visible steps, not smoothly, so any fade has to be done by the app writing values over time |
 | "Music light", `led_debug` 1 / 0 | **works — sound-reactive.** Nothing in silence; with `1` written and audio playing, the **bottom of the box flashes blue in sync** with the sound |
 
+**Ring colour mixing** (tested live, photographed — see
+[`survey/photos/ring/`](survey/photos/ring/), metadata stripped):
+
+| `modem_status` | Bits set | Looks like |
+|---|---|---|
+| `001000` | green | green |
+| `000010` | red | red |
+| `100000` | yellow | amber/yellow |
+| `001010` | green + red | **amber — a real blend, ≈ yellow** |
+| `101000` | yellow + green | plain green |
+| `100010` | yellow + red | plain red |
+| `101010` | all three | amber, ≈ green + red |
+
+Reading: the ring has **only red and green LEDs; "yellow" is both on**.
+Setting green or red alongside yellow makes the driver drop the other LED,
+so the explicit colour wins. LEDs are on/off only, with no brightness, so
+the full palette is **off · green · red · amber**. No custom colours.
+(Judged from phone photos with automatic white balance, so this is about
+colour families, not exact shades.)
+
 The music light is an **SN3199** (Si-En 9-channel I2C LED driver, i2c-2
 0x64, driver `sn3199`). `led_debug` is a mode switch, not a brightness:
 `1` enables the sound-reactive effect, `0` disables it. Tested with a quiet
