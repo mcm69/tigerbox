@@ -13,3 +13,6 @@ dump/
 *.apk
 survey/apks/
 survey/decompiled/
+
+# Built native helpers
+tools/sn3199/sn3199w

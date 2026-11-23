@@ -1,0 +1,69 @@
+name: sn3199
+--- range
+0-1f
+--- access (reg: read write volatile precious)
+00: y y y n
+01: y y y n
+02: y y y n
+03: y y y n
+04: y y y n
+05: y y y n
+06: y y y n
+07: y y y n
+08: y y y n
+09: y y y n
+0a: y y y n
+0b: y y y n
+0c: y y y n
+0d: y y y n
+0e: y y y n
+0f: y y y n
+10: y y y n
+11: y y y n
+12: y y y n
+13: y y y n
+14: y y y n
+15: y y y n
+16: y y y n
+17: y y y n
+18: y y y n
+19: y y y n
+1a: y y y n
+1b: y y y n
+1c: y y y n
+1d: y y y n
+1e: y y y n
+1f: y y y n
+--- registers
+00: XX
+01: XX
+02: XX
+03: XX
+04: XX
+05: XX
+06: XX
+07: XX
+08: XX
+09: XX
+0a: XX
+0b: XX
+0c: XX
+0d: XX
+0e: XX
+0f: XX
+10: XX
+11: XX
+12: XX
+13: XX
+14: XX
+15: XX
+16: XX
+17: XX
+18: XX
+19: XX
+1a: XX
+1b: XX
+1c: XX
+1d: XX
+1e: XX
+1f: XX

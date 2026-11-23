@@ -1,0 +1,21 @@
+--- kallsyms
+00000000 t sn3199_remove
+00000000 T sn3199_i2c_read_reg
+00000000 T sn3199_i2c_write_reg
+00000000 t sn3199_probe
+00000000 r sn3199_regmap
+00000000 r sn3199_id
+00000000 t sn3199_dev_init
+00000000 t sn3199_dev_exit
+00000000 t __initcall_sn3199_dev_init7
+00000000 d sn3199_driver
+00000000 d sn3199_dev_attr
+00000000 b regmap_sn3199
+--- dmesg
+<6>[    0.684432] 20064000.serial: ttyS1 at MMIO 0x20064000 (irq = 53) is a rk29_serial.1
+<6>[    0.684839] serial 20064000.serial: membase e0f7e000
+<6>[    3.079079] Loading sn3199 driver
+<4>[    3.079163] sn3199 enter probe
+<4>[    3.079283] sn3199: gpio_IRQ_request error
+<6>[    3.100647] rk816-bat: save fcc: 5000
+--- device tree nodes

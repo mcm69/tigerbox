@@ -317,6 +317,70 @@ The music light is an **SN3199** (Si-En 9-channel I2C LED driver, i2c-2
 For our app: write `1` when playback starts if the effect is wanted —
 the stock app defaults it on (`MUSIC_LIGHT_DEFAULT = true`).
 
+#### SN3199 register map (from Si-En's datasheet, P0.6, Chinese)
+
+Source: Si-En SN3199 datasheet (oneyac.com mirror), not stored in the repo.
+
+- **I2C address** `0x64` (7-bit `11001` + AD pins; AD tied to GND → `00`).
+  The chip is **write-only** — nothing can be read back. The kernel's
+  regmap (`/sys/kernel/debug/regmap/2-0064/`) marks every register volatile
+  and keeps no cache, so it can't tell us what `led_debug` writes either.
+- Outputs form three RGB groups: **RGB1 = OUT1–3, RGB2 = OUT4–6,
+  RGB3 = OUT7–9** (datasheet reference circuit — the box's wiring unknown).
+
+| Reg | Name | Meaning |
+|---|---|---|
+| `00h` | shutdown | bit0: `0` software shutdown, `1` normal |
+| `01h` | LED control 1 | bits 6–4 OUT6–4, bits 2–0 OUT3–1 on/off (default `0x77`) |
+| `02h` | LED control 2 | bits 2–0 OUT9–7 on/off (default `0x07`) |
+| `03h` | config 1 | bits 6–4 RGB3–1 mode (`0` PWM, `1` auto-breathing) · bit2 **AE audio-sync** · bit1 AGC off · bit0 AGC speed |
+| `04h` | config 2 | bit7 cascade slave · bits 6–4 **current**: `000` 20, `001` 15, `010` 10, `011` 5, `100` 40, `101` 35, `110` 30, `111` 25 mA · bits 2–0 audio gain 0 to +21 dB in 3 dB steps |
+| `05h` | breath hold | per group hold enable + hold at T2 or T4 |
+| `06h` | breath marker | V_BM pin output (unused here) |
+| `07h`–`0Fh` | **PWM OUT1–OUT9** | 256 levels each |
+| `10h` | data update | write anything → applies `01h`, `02h`, `07h`–`0Fh` |
+| `11h`–`19h` | T0 OUT1–9 | start delay |
+| `1Ah`–`1Ch` | T1–T3 RGB1–3 | rise / hold / fall times |
+| `1Dh`–`25h` | T4 OUT1–9 | off time |
+| `26h` | time update | write anything → applies `11h`–`25h` |
+| `FFh` | reset | write anything → all registers to power-on defaults |
+
+So the chip can do **256-level colour per output and hardware breathing
+per RGB group** — whether that means real colours depends on which outputs
+have LEDs fitted.
+
+**Output mapping, tested live 2026-11-23** (`tools/sn3199/map-outputs.sh`:
+each of OUT1–OUT9 alone for 5 s at 5 mA, PWM 0x80, then all nine): blue
+near the start of the sequence, nothing for most of it, then the same blue
+but brighter with all nine on. **Only blue LEDs are fitted — no colour
+mixing on the PLUS.** "Brighter with all nine" means more than one output
+drives blue LEDs; the run's 5 s steps didn't separate exactly which ones
+(somewhere in OUT1–OUT3, the first RGB group). Still available in blue:
+256-level dimming, hardware breathing, audio sync.
+
+**Confirmed with a second, slower run** (`tools/sn3199/blue-demo-device.sh`,
+button ring flashing as a slot counter):
+
+| Output | Result |
+|---|---|
+| **OUT1, OUT2, OUT3** (group RGB1) | **blue** |
+| OUT4–OUT9 | nothing fitted |
+| Software fade, PWM 0→255→0 on OUT1–3 | **smooth** — the 256 levels work, unlike the tiger head's steps |
+| Hardware breathing, RGB1 in auto-breathing mode | **works**: T1/T3 = 2.08 s rise/fall (`0x1a`=`0x13`), T2 = 0.26 s hold, T4 = 0.52 s off (`0x1d`=`0x02`), peak = PWM, no CPU involved |
+
+Gotcha found on that run: loading the peak PWM with `0x10` *before*
+setting `0x03` to breathing mode lights the LEDs at full brightness for a
+moment. Set the mode first, then timings, then PWM + `0x10`, then `0x26`
+(the script is fixed; the fixed order is not yet re-tested on the box).
+
+**For our app:** control the bottom glow through OUT1–OUT3 only (regs
+`0x07`–`0x09`), as one blue channel. It needs the native helper (or the
+same code as JNI) — Java can't issue the I2C ioctl.
+
+Writing it needs a native helper: `/dev/i2c-2` exists, but the kernel
+driver already owns address `0x64` (so the helper needs `I2C_SLAVE_FORCE`)
+and there is no `i2cset` on the box.
+
 Flicker timing was reset to `time_on` 100 / `time_off` 900 afterwards
 (900 is the stock app's value, 100 is a guess) and the ring to green.
 
