@@ -316,3 +316,72 @@ Once the interactive shell is up:
 - full image: `dd if=/dev/block/mmcblk0 of=/data/.../full.img bs=4M` (8 GB)
   or pull per-partition by-name. system is 600M, userdata 6488M.
 - `adb pull` is easier than dd-over-serial once USB ADB is enabled.
+
+## ADB over USB WORKS (2026-11-23)
+
+Root shell via UART (`su` -> uid=0, context u:r:su:s0), then
+`setprop sys.usb.config mtp,adb` (live, not yet persisted). Box shows as
+`REDACTED_SERIAL device ... product:rk312x`. Root-shell session
+archived: `logs/2026-11-23-root-shell-session.log`.
+
+Gotchas hit on the way:
+- After boot the console is already a shell (`shell@rk312x:/ $`); the
+  fiq/`console` step was unnecessary.
+- Kernel spam (`chrg no di->ac_in`) interleaves with typing; tame it with
+  `echo 1 > /proc/sys/kernel/printk`.
+- Right after the setprop the box went into a deep-sleep loop
+  (`GPIO0_INTEN ... armoff ... sram`), which powers USB down.
+  `echo usbdebug > /sys/power/wake_lock` keeps it awake (not persistent).
+- **USB-C to USB-C does NOT work.** The MacBookPro18,1 is USB-C only, and
+  the box never appeared on a C-to-C cable. What fixed it: a USB-C-to-A
+  adapter on the Mac + an A-to-C data cable to the box. Most likely the
+  box's USB-C port lacks the CC pull-down resistors, so a USB-C host never
+  turns on VBUS; a USB-A port always supplies 5V. This probably also
+  explains why nothing ever enumerated at the very start.
+
+### What the running system reports
+
+| Prop | Value |
+|---|---|
+| ro.build.display.id | R12.4.4-BTS84-20260715.130314 |
+| ro.build.fingerprint | rockchip/rk312x/rk312x:5.1.1/LMY49F/...:userdebug/test-keys |
+| Android | 5.1.1 (LMY49F) |
+| ro.build.type / tags | **userdebug / test-keys** |
+| ro.secure / ro.debuggable | 1 / **1** |
+| ro.adb.secure | 0 (no RSA authorization needed) |
+| persist.sys.usb.config | charging (live test not yet persisted) |
+
+- System was OTA-updated to a **July 2026** build; recovery is still the
+  2023 one. Kernel and U-Boot build dates (Jul 13-15 2026) match.
+- **userdebug + ro.debuggable=1** means `adb root` should restart adbd as
+  root - no UART or su needed for future sessions.
+- **test-keys**: Android-level signing uses the public AOSP test keys
+  (separate from the locked Rockchip secure-boot chain). Not needed now
+  that we have root, but notable: anything signed with the AOSP platform
+  test key gets system privileges on this build.
+- `/system` is **already mounted rw** (ext4). No remount, no dm-verity.
+- su: `/system/xbin/su`, setuid root, group shell (mode rwsr-x---).
+- by-name symlinks match logs/partitions.md exactly; system = mmcblk0p11.
+- Usage: /system 291M of 581M; /data only 99M of 6.1G - nearly factory
+  fresh, so a userdata dump will be mostly empty and compress well.
+
+### Persisted and verified across reboot
+
+    adb shell su 0 setprop persist.sys.usb.config mtp,adb
+    adb shell su 0 setprop persist.service.adb.enable 1
+
+Setting persist.sys.usb.config re-enumerates USB and kills the running adb
+command mid-way - re-check and re-run anything after it. Both props land in
+/data/property/. After `adb reboot` the box was back on ADB in 16 s with
+sys.usb.config=mtp,adb, boot_completed=1.
+
+`adb root` works (ro.debuggable=1): adbd restarts as uid=0, context
+u:r:su:s0. Not persistent - run it once per boot. **UART is no longer
+needed**; the probes can come off.
+
+AOSP su syntax on this build is `su 0 <cmd>`, not `su -c`.
+
+### Next
+
+1. Dump via `adb exec-out dd if=/dev/block/mmcblk0 bs=4M` into dump/
+   (gitignored). Mac has 303G free. Expect ~7.5 GB raw.

@@ -1,0 +1,141 @@
+[   10.958978] acc_release
+[   12.603544] dwc_otg_hcd_resume, usb device mode
+[   12.604356] dwc_otg_hcd_suspend, usb device mode
+[   12.732496] Current WiFi chip is RTL8189FS.
+[   12.732860] Current WiFi chip is RTL8189FS.
+[   12.751012] Current WiFi chip is RTL8189FS.
+
+[   13.443297] chrg no di->ac_in--------- v7[   13.598060] IPv6: ADDRCONF(NETDEV_UP): p2p0: link is not ready
+[   13.735659] IPv6: ADDRCONF(NETDEV_UP): wlan0: link is not ready
+[   13.892904] Current WiFi chip is RTL8189FS.
+[   14.301663] pm policy 0 -> 1
+[   18.361843] chrg no di->ac_in--------- v7[   20.838239] flash_off :0
+[   20.839003] ---------led_store,buf = 1,opendev = 1
+[   20.842361] type=1400 audit(1421830248.550:6): avc: denied { write } for pid=910 comm="DefaultDispatch" name="time_off" dev="sysfs" ino=11772 scontext=u:r:system_app:s0 tcontext=u:object_r:sysfs:s0 tclass=file permissive=1
+[   20.842550] val 0
+[   20.842550]  
+[   20.847192] flash_on :0
+[   20.849807] lbc_pwm :0
+[   20.849845] lbc_pwm_control----1===0,2===0,3===0,4===0,5===0,6===0
+chrg no di->ac_in--------- v7[   27.226160] flash_off :0
+[   27.227447] flash_on :0
+[   27.228625] lbc_pwm :0
+[   27.228656] lbc_pwm_control----1===0,2===0,3===0,4===0,5===0,6===0
+chrg no di->ac_in--------- v7[   28.375160] type=1400 audit(1421830256.210:7): avc: denied { read } for pid=808 comm=".tiger.tigerbox" name="ttyS0" dev="tmpfs" ino=2154 scontext=u:r:system_app:s0 tcontext=u:object_r:serial_device:s0 tclass=chr_file permissive=1
+[   28.375688] type=1400 audit(1421830256.210:8): avc: denied { write } for pid=808 comm=".tiger.tigerbox" name="ttyS0" dev="tmpfs" ino=2154 scontext=u:r:system_app:s0 tcontext=u:object_r:serial_device:s0 tclass=chr_file permissive=1
+[   28.383412] mladd sound/soc/codecs/rk312x_codec.c ============================= rk312x_priv->if_hp: 0
+[   28.383442] ble_store :1
+[   28.383486] rk816_ldo4: Failed to create debugfs directory
+[   28.383503] ------------[ cut here ]------------
+[   28.383532] WARNING: at drivers/regulator/core.c:1683 _regulator_disable+0x30/0xec()
+[   28.383548] unbalanced disables for rk816_ldo4
+
+[   28.383567] Modules linked in: drmboot(P)
+[   28.383597] CPU: 0 PID: 915 Comm: DefaultDispatch Tainted: P        W    3.10.0 #3
+[   28.383634] [<c0013fe4>] (unwind_backtrace+0x0/0xe0) from [<c0011870>] (show_stack+0x10/0x14)
+[   28.383664] [<c0011870>] (show_stack+0x10/0x14) from [<c0040ce4>] (warn_slowpath_common+0x4c/0x68)
+[   28.383694] [<c0040ce4>] (warn_slowpath_common+0x4c/0x68) from [<c0040d80>] (warn_slowpath_fmt+0x2c/0x3c)
+[   28.383726] [<c0040d80>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0350e00>] (_regulator_disable+0x30/0xec)
+[   28.383756] [<c0350e00>] (_regulator_disable+0x30/0xec) from [<c0350ee8>] (regulator_disable+0x2c/0x58)
+[   28.383786] [<c0350ee8>] (regulator_disable+0x2c/0x58) from [<c0689cd0>] (ble_store+0xa4/0x16c)
+[   28.383815] [<c0689cd0>] (ble_store+0xa4/0x16c) from [<c02c3558>] (kobj_attr_store+0x14/0x20)
+[   28.383844] [<c02c3558>] (kobj_attr_store+0x14/0x20) from [<c0167ad0>] (sysfs_write_file+0x7c/0xb0)
+[   28.383874] [<c0167ad0>] (sysfs_write_file+0x7c/0xb0) from [<c0117348>] (vfs_write+0xd4/0x16c)
+[   28.383960] [<c0117348>] (vfs_write+0xd4/0x16c) from [<c0117688>] (SyS_write+0x3c/0x60)
+[   28.383998] [<c0117688>] (SyS_write+0x3c/0x60) from [<c000db00>] (ret_fast_syscall+0x0/0x38)
+[   28.384018] ---[ end trace 30b4b7115263b943 ]---
+[   28.384214] type=1400 audit(1421830256.210:9): avc: denied { open } for pid=808 comm=".tiger.tigerbox" path="/dev/ttyS0" dev="tmpfs" ino=2154 scontext=u:r:system_app:s0 tcontext=u:object_r:serial_device:s0 tclass=chr_file permissive=1
+[   28.384548] type=1400 audit(1421830256.210:10): avc: denied { ioctl } for pid=808 comm=".tiger.tigerbox" path="/dev/ttyS0" dev="tmpfs" ino=2154 ioctlcmd=5401 scontext=u:r:system_app:s0 tcontext=u:object_r:serial_device:s0 tclass=chr_file permissive=1
+[   28.385950] regulator_enable rk816_ldo4
+[   31.067409] lowmemorykiller: Killing 'd.process.acore' (866), adj 1000,
+[   31.067409]    to free 25532kB on behalf of 'kswapd0' (85) because
+[   31.067409]    cache 102048kB is below limit 103988kB for oom_score_adj 1000
+[   31.067409]    Free memory is 116kB above reserved
+[   31.265291] lowmemorykiller: Killing 'externalstorage' (653), adj 1000,
+[   31.265291]    to free 24508kB on behalf of 'kswapd0' (85) because
+[   31.265291]    cache 100144kB is below limit 103988kB for oom_score_adj 1000
+[   31.265291]    Free memory is 376kB above reserved
+[   31.842918] lowmemorykiller: Killing 'ndroid.keychain' (920), adj 764,
+[   31.842918]    to free 23528kB on behalf of 'kswapd0' (85) because
+[   31.842918]    cache 81392kB is below limit 85384kB for oom_score_adj 529
+[   31.842918]    Free memory is -168kB above reserved
+[   32.052836] lowmemorykiller: Killing 'gedprovisioning' (962), adj 647,
+[   32.052836]    to free 25560kB on behalf of 'kswapd0' (85) because
+[   32.052836]    cache 77920kB is below limit 85384kB for oom_score_adj 529
+[   32.052836]    Free memory is -504kB above reserved
+[   32.212038] lowmemorykiller: Killing 'ndroid.settings' (941), adj 529,
+[   32.212038]    to free 27676kB on behalf of 'kswapd0' (85) because
+[   32.212038]    cache 78256kB is below limit 85384kB for oom_score_adj 529
+[   32.212038]    Free memory is -368kB above reserved
+[   32.741278] flash_off :0
+[   32.744596] flash_on :0
+[   32.747592] lbc_pwm :0
+[   32.747637] lbc_pwm_control----1===0,2===0,3===0,4===0,5===0,6===0
+[   32.751421] flash_off :0
+[   32.755035] flash_on :0
+[   32.758143] lbc_pwm :0
+[   32.758173] lbc_pwm_control----1===0,2===0,3===0,4===0,5===0,6===0
+[   32.761497] flash_off :0
+[   32.764662] flash_on :0
+[   32.767513] lbc_pwm :0
+[   32.767544] lbc_pwm_control----1===0,2===0,3===0,4===0,5===0,6===0
+[   33.122939] chrg no di->ac_in--------- v7[   34.129195] rk312x_playback_path_put : set playback_path = 2
+[   34.129243] rk312x_codec_power_up : power up playback
+[   34.129259] rk312x_priv->if_hp = 0
+[   34.136137] ----read val != write val, rec_config
+[   34.145179] ----read val != write val, rec_config
+[   34.167687] rk312x_codec_power_up 2087 : rk312x is phm
+[   34.167737] rk312x_priv->if_hp = 0
+[   34.167758] rk312x_codec_ctl_gpio set spk clt 1
+[   34.220194] rk312x_hw_params : MCLK = 11289600Hz, sample rate = 44100Hz, div = 32
+[   34.220249] stero
+[   34.220670] rk312x_digital_mute 1796 : rk312x is phm
+[   34.220701] rk312x_priv->if_hp = 0
+[   34.220719] rk312x_priv->if_hp = 0
+[   34.220740] rk312x_codec_ctl_gpio set hp clt 0
+
+[   38.051743] chrg no di->ac_in--------- v7flash_off :0
+[   39.584642] flash_on :0
+[   39.587789] lbc_pwm :0
+[   39.587842] lbc_pwm_control----1===0,2===0,3===0,4===0,5===0,6===0
+[   42.972010] chrg no di->ac_in--------- v7chrg no di->ac_in--------- v7chrg no di->ac_in--------- v7[   56.175825] rk312x_digital_mute 1783 : rk312x is phm
+[   56.175939] rk312x_priv->if_hp = 0
+[   56.280568] rk312x_codec_ctl_gpio set spk clt 0
+[   56.339476] rk312x_priv->if_hp = 0
+[   56.340142] rk312x_playback_path_put : set playback_path = 0
+[   56.340215] rk312x_codec_power_down : power down playback
+[   56.340268] rk312x_priv->if_hp = 0
+chrg no di->ac_in--------- v7
+shell@rk312x:/ $ chrg no di->ac_in--------- v7chrg no di->ac_in--------- v7chrg no di->ac_in--------- v7chrg no di->ac_in--------- v7chrg no di->ac_in--------- v7
+[  102.045177] chrg no di->ac_in--------- v7
+/system/bin/sh: w: not found
+127|shell@rk312x:/ $ chrg no di->ac_in--------- v7console
+/system/bin/sh: console: not found
+127|shell@rk312x:/ $ chrg no di->ac_in--------- v7su
+shell@rk312x:/ # idchrg no di->ac_in--------- v7
+uid=0(root) gid=0(root) groups=1007(log) context=u:r:su:s0
+shell@rk312x:/ # echo chrg no di->ac_in--------- v71 > /prchrg no di->ac_in--------- v7oc/sys/kerchrg no di->ac_in--------- v7nel/printkchrg no di->ac_in--------- v7
+shell@rk312x:/ # 
+shell@rk312x:/ # 
+shell@rk312x:/ # 
+shell@rk312x:/ # getenforce
+Permissive
+shell@rk312x:/ # getprop ro.adb.secure
+0
+shell@rk312x:/ # getprop persist.sys.usb.config
+charging
+shell@rk312x:/ # getprop sys.usb.config
+charging
+shell@rk312x:/ # setprop sys.usb.config mtp,adb
+shell@rk312x:/ # GPIO0_INTEN: 0x00001920
+01c-armoff-2345sram786Kd543210
+GPIO0_INTEN: 0x00001920
+01c-armoff-2345sram786Kd543210
+GPIO0_INTEN: 0x00001920
+01c-armoff-2345sram786Kd543210
+GPIO0_INTEN: 0x00001920
+01c-armoff-2345sram786Kd543210
+GPIO0_INTEN: 0x00001920
+01c-armoff-2345sram786Kd543210
+lGPIO0_INTEN: 0x00001920
+01c-armoff-2345sram786
