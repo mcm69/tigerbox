@@ -1,0 +1,57 @@
+=== switch class (jack detect)
+h2w: name=Headset state=0
+usb_audio: name=usb_audio state=0
+usb_audio_capture: name=usb_audio_capture state=-1
+usb_audio_playback: name=usb_audio_playback state=-1
+
+=== input devices with switch events
+(none)
+
+=== dmesg: headset / jack / codec
+<6>[    0.250606] DMA: preallocated 256 KiB pool for atomic coherent allocations
+<6>[    0.357632] pmic is rk816, chip version is 8165
+<6>[    0.358159] pmic on/off source: on=0x80, off=0x0
+<6>[    0.365972] rk816_i2c_probe: rk816_pmic_sleep=0
+<7>[    0.671268] SELinux:  Registering netfilter hooks
+<6>[    0.699032] SLIP: version 0.8.4-NET3.019-NEWTTY (dynamic channels, max=256) (6 bit encapsulation enabled).
+<6>[    1.953082] rk312x_platform_probe : spk_ctl_gpio 30 active_level 1 
+<4>[    1.953100] spk mute delay 50ms --- hp mute delay 10ms
+<3>[    1.962893] audio-rk312x audio-rk312x.16: ASoC: no sink widget found for Mic Bias
+<3>[    1.962913] audio-rk312x audio-rk312x.16: ASoC: Failed to add route Mic Jack -> direct -> Mic Bias
+<3>[    1.962933] audio-rk312x audio-rk312x.16: ASoC: no source widget found for Mic Bias
+<3>[    1.962952] audio-rk312x audio-rk312x.16: ASoC: Failed to add route Mic Bias -> direct -> MICP
+<3>[    1.962971] audio-rk312x audio-rk312x.16: ASoC: no source widget found for Mic Bias
+<3>[    1.962989] audio-rk312x audio-rk312x.16: ASoC: Failed to add route Mic Bias -> direct -> MICN
+<3>[    1.963008] audio-rk312x audio-rk312x.16: ASoC: no sink widget found for Mic Bias
+<3>[    1.963027] audio-rk312x audio-rk312x.16: ASoC: Failed to add route Headset Jack -> direct -> Mic Bias
+<3>[    1.963065] audio-rk312x audio-rk312x.16: ASoC: Failed to add route HPOUTR -> direct -> Ext Spk
+<3>[    1.963102] audio-rk312x audio-rk312x.16: ASoC: Failed to add route HPOUTL -> direct -> Ext Spk
+<3>[    1.963140] audio-rk312x audio-rk312x.16: ASoC: Failed to add route HPOUTR -> direct -> Headphone Jack
+<3>[    1.963178] audio-rk312x audio-rk312x.16: ASoC: Failed to add route HPOUTL -> direct -> Headphone Jack
+
+=== ALSA cards and PCMs
+ 0 [RKRK312X       ]: RK_RK312X - RK_RK312X
+                      RK_RK312X
+00-00: RK312X PCM rk312x-hifi-0 :  : playback 1 : capture 1
+00-01: RK312X PCM rk312x-voice-1 :  : playback 1 : capture 1
+
+=== audio HAL outputs/inputs
+Output thread 0xb48aa000:
+  Sample rate: 44100
+
+=== audio policy: attached devices
+ Available output devices:
+  Device 1:
+  - type: AUDIO_DEVICE_OUT_SPEAKER                        
+ Available input devices:
+  Device 1:
+  - type: AUDIO_DEVICE_IN_BUILTIN_MIC                     
+  Device 2:
+  - type: AUDIO_DEVICE_IN_REMOTE_SUBMIX                   
+    - devices:
+      Device 1:
+      - type: AUDIO_DEVICE_OUT_EARPIECE                       
+      Device 2:
+      - type: AUDIO_DEVICE_OUT_SPEAKER                        
+      Device 3:
+      - type: AUDIO_DEVICE_OUT_WIRED_HEADSET                  

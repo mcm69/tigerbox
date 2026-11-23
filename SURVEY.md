@@ -444,14 +444,101 @@ Wi-Fi, so it can stay off.
 - **USB host mode:** vold is set up for USB storage, but host mode on a
   USB-C port needs CC resistors, and we found the port behaves as if it
   has none. Don't plan on USB sticks.
-- **The serial port** `/dev/ttyS0` (mode 0777) is held open by the tigerbox
-  app through a bundled library (`com.yf.huaers.serial485`). Nothing in the
-  app's own code calls it directly, so its purpose is unconfirmed; the
-  Bluetooth audio module is the likeliest partner.
+- **The serial port** `/dev/ttyS0` (mode 0777) is the link to the
+  Bluetooth daughterboard — confirmed, see section 7.
 
 ---
 
-## 7. Suggested order of work
+## 7. The rest of the hardware (checked 2026-11-23)
+
+Read-only checks over ADB; raw output in `survey/raw/hw-*.txt`.
+
+### What's actually on the buses
+
+| Bus | Address | Part | Status |
+|---|---|---|---|
+| I2C-0 | `0x1a` | RK816 power chip (PMIC, battery, RTC, power key) | in use |
+| I2C-0 | `0x1c`, `0x5b` | RK818, ACT8931 | declared, **not fitted** (reference-design alternatives) |
+| I2C-2 | `0x16` | `mf175x` card reader | in use |
+| I2C-2 | `0x28` | NXP `pn547` NFC | declared, **not fitted** |
+| I2C-2 | `0x40` | `gslX680` touch | in use |
+| I2C-2 | `0x64` | SN3199 LED driver | in use |
+| SDIO | — | Realtek `0x024c:0xf179` (RTL8189FS Wi-Fi) | in use |
+| eMMC | — | Samsung `8GTF4R` | in use |
+| USB, SPI | — | nothing attached | |
+| UART `ttyS0` | — | Bluetooth daughterboard | in use (stock app) |
+
+The **Sonix chip** near the NFC pads is on none of these buses, so Linux
+can't see it — standalone, or behind the Bluetooth module. The
+**`F-6986 V2.3` board** on the solder side is very likely the back of the
+Bluetooth daughterboard (`LBC-0509AF` on the front): a blue board with an
+antenna overhanging the edge appears on both sides.
+
+### Screen and touch
+
+- Backlight `rk28_bl`: **0–225** (`/sys/class/backlight/rk28_bl/brightness`).
+  Android's own setting is 102 of 255.
+- Touch `gslX680`: multitouch, 0–800 × 0–480, matching the panel. Not
+  tested by hand, but the stock app's onboarding screens work.
+
+### Battery and power
+
+- Full capacity **5000 mAh** (`rk816-bat: fcc=5000`).
+- At boot (screen on, busy) it drew **~245 mA**; charging now at ~257 mA
+  near full. One sample, but it points to well over a day of use per
+  charge. Charging works from the USB-A cable (`ac: online=1`).
+- The stock driver limits charge input to 450 mA when it sees no USB host.
+
+### Clock
+
+- **Working real-time clock** in the RK816 (`/sys/class/rtc/rtc0`), read
+  into Android at boot (`hctosys=1`). It ticks, but it has **never been set**
+  — the box thinks it's 2015-01-21 — because `auto_time=1` waits for a
+  network that never comes. Timezone is already `Europe/Amsterdam`.
+- Setting it once by hand would stick for as long as the battery has charge.
+  Needed for anything time-based (sleep timers, bedtime mode).
+
+### Audio
+
+- One sound card, `RK_RK312X`: playback paths `SPK`, `HP`, `BT` and more
+  (`tinymix "Playback Path"`), speaker amp enable on GPIO 30.
+- **Stereo, probably**: the speaker amp is fed from both `HPOUTL` and
+  `HPOUTR`, and the board has `SPKL` / `SPKR` pads. Confirming two speakers
+  needs a left/right test with someone listening.
+- **Headphone detection exists** (`/sys/class/switch/h2w`, currently 0 =
+  nothing plugged in). **The PLUS has a 3.5 mm headphone socket** (confirmed
+  by eye 2026-11-23).
+- **Microphone: unconfirmed.** Android lists a built-in mic, but that comes
+  from config, and the kernel logs errors setting up mic bias. The only
+  real test is a short recording — not done, as it captures room audio.
+
+### Bluetooth
+
+- **Android's Bluetooth stack is unused**: off, no address, and the only
+  `rfkill` switches are Wi-Fi. The Realtek Bluetooth library on `/system`
+  is a reference-build leftover; the RTL8189FS here is Wi-Fi-only.
+- Bluetooth is **the daughterboard, driven by the stock app over
+  `/dev/ttyS0` at 115200 baud** (`com.yf.huaers.serial485.imp.SRBluetoothService`,
+  wrapped by `com.tigermedia.bt.BtSerial485Service`).
+- It's a **Bluetooth audio *source***: the box sends its sound to
+  headphones or speakers (the app's "sound destination" switch, and the
+  codec's `BT` playback path), and the headphones' buttons come back as
+  events.
+- The protocol is small — about 30 byte codes in `SRConstants`: search,
+  connect, reconnect with a stored link key, delete pairing; status back
+  (on/off, connected, disconnected, connect failed, search ended, play,
+  pause) and button events (play/pause, stop, next, previous, volume ±).
+  Reimplementable if Bluetooth headphones are wanted; not needed otherwise.
+
+### Not present
+
+- **Camera**: Android reports 0 camera devices. **GPS**: no device, no
+  provider. Both features are flags inherited from Rockchip's reference
+  build.
+
+---
+
+## 8. Suggested order of work
 
 Nothing below has been done; it's the plan this survey supports.
 

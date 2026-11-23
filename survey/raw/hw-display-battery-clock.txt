@@ -1,0 +1,36 @@
+=== backlight
+/sys/class/backlight/rk28_bl: brightness=0 max=225 actual=0 power=0
+settings: screen_brightness=102 mode=0
+
+=== touch (gslX680) axes
+  name:     "gslX680"
+                ABS_MT_TOUCH_MAJOR    : value 0, min 0, max 255, fuzz 0, flat 0, resolution 0
+                ABS_MT_POSITION_X     : value 0, min 0, max 800, fuzz 0, flat 0, resolution 0
+                ABS_MT_POSITION_Y     : value 0, min 0, max 480, fuzz 0, flat 0, resolution 0
+                ABS_MT_TRACKING_ID    : value 0, min 0, max 65535, fuzz 0, flat 0, resolution 0
+
+=== battery
+POWER_SUPPLY_NAME=battery
+POWER_SUPPLY_STATUS=Charging
+POWER_SUPPLY_CURRENT_NOW=257000
+POWER_SUPPLY_VOLTAGE_NOW=4189000
+POWER_SUPPLY_PRESENT=1
+POWER_SUPPLY_HEALTH=Good
+POWER_SUPPLY_CAPACITY=90
+POWER_SUPPLY_TEMP=188
+ac: online=1 type=Mains
+battery: online= type=Battery
+usb: online=0 type=USB
+<6>[    1.867156] Synopsys Designware Multimedia Card Interface Driver
+<6>[    3.085237] rk816-bat: support adc dc
+<6>[    3.100647] rk816-bat: save fcc: 5000
+<6>[    3.102163] rk816-bat: first on: dsoc=68, rsoc=68 cap=3405, fcc=5000, ov=3815
+<6>[    3.115394] rk816-bat: set charger type: NONE_USB, current: input=450, chrg=2000
+<6>[    3.115576] rk816-bat: driver version 1.2
+<6>[    3.614019] rk816-bat: changed: dsoc=68, rsoc=68, v=3727, ov=3815 c=-245, cap=3405, f=5000, st=charge off
+<6>[    3.614046] rk816-bat: dl=68, rl=68, v=3733, halt=0, halt_n=0, max=0, init=0, sw=0, calib=0, below0=0, force=0
+
+=== clock
+Wed Jan 21 11:52:59 CET 2015
+/sys/class/rtc/rtc0: name=rk816 date=2015-01-21 time=10:52:58 epoch=1421837578 hctosys=1
+auto_time=1 tz=Europe/Amsterdam

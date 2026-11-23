@@ -1,0 +1,31 @@
+=== I2C devices (bus-addr: name -> driver)
+0-001a: rk816 -> rk816
+0-001c: rk818 -> NO DRIVER BOUND
+0-005b: act8931 -> NO DRIVER BOUND
+2-0016: mf175x -> mf175x
+2-0028: nfc-pn547 -> NO DRIVER BOUND
+2-0040: gslX680 -> gslX680
+2-0064: sn3199 -> sn3199
+i2c-0: rockchip_i2c -> NO DRIVER BOUND
+i2c-2: rockchip_i2c -> NO DRIVER BOUND
+i2c-3: rockchip_i2c -> NO DRIVER BOUND
+
+=== I2C adapters
+i2c-0: rockchip_i2c
+i2c-2: rockchip_i2c
+i2c-3: rockchip_i2c
+
+=== SDIO / MMC
+mmc1:0001:1: vendor=0x024c device=0xf179 type= name=
+mmc0:0001: vendor= device= type=MMC name=8GTF4R
+mmc1:0001: vendor= device= type=SDIO name=
+
+=== USB devices
+1-0:1.0
+2-0:1.0
+3-0:1.0
+usb1
+usb2
+usb3
+
+=== SPI

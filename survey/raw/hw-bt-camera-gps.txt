@@ -1,0 +1,41 @@
+=== Android Bluetooth stack
+enabled: false
+state: 10
+address: null
+name: null
+Bluetooth Service not connected
+[ro.bt.bdaddr_path]: [/data/misc/bluetoothd/bt_addr]
+bluetooth_rtk.default.so
+auto_pair_devlist.conf
+bt_did.conf
+bt_stack.conf
+    # bluetooth LPM
+    chmod 0220 /proc/bluetooth/sleep/lpm
+    chmod 0220 /proc/bluetooth/sleep/btwrite
+    chown bluetooth net_bt_stack /proc/bluetooth/sleep/lpm
+    chown bluetooth net_bt_stack /proc/bluetooth/sleep/btwrite
+# permissions for bluetooth.
+    mkdir /data/misc/bluetoothd 0775 bluetooth net_bt_stack
+    setprop ro.bt.bdaddr_path "/data/misc/bluetoothd/bt_addr"
+    chown bluetooth net_bt_stack ro.bt.bdaddr_path
+# for rtl bluetooth
+    chown bluetooth net_bt_stack /data/misc/Bluetooth
+    mkdir /data/misc/bluedroid 0770 bluetooth net_bt_stack
+crwxrwxrwx root     root       4,  64 2015-01-21 11:09 ttyS0
+crw------- root     root       4,  65 2015-01-21 09:50 ttyS1
+crw------- wifi     wifi      10,  62 2015-01-21 09:50 rfkill
+rfkill0
+rfkill1
+rfkill0: phy0 type=wlan state=1
+rfkill1: phy1 type=wlan state=1
+
+=== camera
+/dev/video_state
+Number of camera devices: 0
+
+=== GPS
+(no gps device nodes)
+  Active Records by Provider:
+  Historical Records by Provider:
+  Enabled Providers:
+gps Location[ 0,000000,0,000000 acc=340282346638529000000000000000000000000 t=?!? et=?!?]
