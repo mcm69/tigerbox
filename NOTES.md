@@ -209,3 +209,48 @@ wrong - try 1500000, which some Rockchip builds use. Silence = wrong pad.
 
 Only once a readable boot log appears is it worth soldering TXD on to get
 an interactive shell.
+
+## UART console WORKS - boot log captured (2026-11-23)
+
+Log archived at `logs/2026-11-23-uart-boot-partial.log`. 115200 8N1 was
+correct. Confirmed directly from the device, no longer inference:
+
+- **SoC is RK312x.** The audio driver is `sound/soc/codecs/rk312x_codec.c`
+  and dozens of `rk312x_*` calls appear. RK3128 confirmed as the family.
+- **PMIC is RK816** - `rk816_ldo4` appears as a regulator name.
+- **Kernel 3.10.0 #3**, ARM, SMP (`CPU: 1` on a backtrace), module
+  `drmboot(P)` - proprietary, so the kernel is tainted `P`.
+- **Wi-Fi driver reports `RTL8189FS`**, while the silkscreen reads 8189FTV.
+  Same family; the driver string is what matters for driver hunting.
+- RAM pressure is severe: lowmemorykiller culls settings, keychain,
+  keychain, acore etc. within 2 s of boot, "Free memory is -36kB above
+  reserved". Consistent with 512 MB.
+- RTC is unset - audit timestamps decode to 2015-01-21.
+
+### Two findings that matter for the plan
+
+**1. SELinux is PERMISSIVE.** Every `avc: denied` line ends with
+`permissive=1`, so denials are logged but not enforced. Nothing in SELinux
+will block remounting /system or editing build.prop.
+
+**2. The tigerbox app itself owns a serial port.** pid 812 `.tiger.tigerbox`
+opens, reads, writes and ioctls `/dev/ttyS0`. That accounts for one of the
+three TX/RX pad pairs on the solder side - it is the app's link to a
+peripheral (most likely the BT audio module), NOT the console.
+
+Also seen: `lbc_pwm_control` / `flash_on` / `flash_off` / `led_store` drive
+the logo LED (the `LOGO` pads on the component side), and `ble_store`
+toggling `rk816_ldo4` throws a harmless unbalanced-regulator WARNING.
+
+USB note: `dwc_otg_hcd_resume, usb device mode` then `_suspend` at ~12.5 s,
+plus `acc_open`/`acc_release`. The USB gadget hardware DOES come up in
+normal boot - it just has no functions bound, which is exactly what
+`persist.sys.usb.config=charging` does. That supports the build.prop plan.
+
+### Still needed
+
+- This capture starts at **9.9 s**, so U-Boot and the early kernel are
+  missing. Recapture from power-on to get `Linux version`, the kernel
+  command line and the partition table - needed to know what to dump.
+- Console is so far **receive-only**. Whether it gives an interactive shell
+  is untested: that needs the adapter's TXD wired to the console RX pad.
