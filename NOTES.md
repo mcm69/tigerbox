@@ -385,3 +385,52 @@ AOSP su syntax on this build is `su 0 <cmd>`, not `su -c`.
 
 1. Dump via `adb exec-out dd if=/dev/block/mmcblk0 bs=4M` into dump/
    (gitignored). Mac has 303G free. Expect ~7.5 GB raw.
+
+## DECISION (2026-11-23): DIY offline audio box with our own frontend
+
+Keep the form factor, replace the tigermedia software: tap an NFC card ->
+play local audio. No cloud, no subscription. Our own app becomes the HOME
+launcher; the OEM apps get disabled (`pm disable`, reversible), not deleted.
+
+### Unknowns to resolve first (investigation, after the dump)
+
+| # | Question | How to find out |
+|---|---|---|
+| 1 | How does the NFC reader (FM17610) reach Android? | `pm list features` for android.hardware.nfc; else the stock app's `/dev/ttyS0` traffic. Decompile the tigerbox APK (from the dump) with jadx to read the card protocol. Tap a card while watching `logcat`. |
+| 2 | What do the buttons send? | `getevent -l` while pressing the big HOME button (and any others) |
+| 3 | How is the LED ring driven? | find the sysfs nodes behind `led_store` / `lbc_pwm` in the kernel log; `ls /sys/class/leds` |
+| 4 | Which package is the OTA updater? | `pm list packages -f`, look for the one writing radical_update |
+| 5 | Screen size/density | `wm size`, `wm density` |
+
+### Build plan
+
+- Native Android app, **minSdk/targetSdk 22**, plain Views (no Compose,
+  no WebView) - the box has 512 MB RAM and an old WebView.
+- Registers as HOME (kiosk): big cover art, play/pause, next, volume.
+- Card registry: UID -> folder/playlist, a JSON file on /sdcard; a "learn
+  card" mode to bind a new card to a folder.
+- Audio from /sdcard (6 GB free on /data).
+- Install as a user app first; move to /system/priv-app (or sign with the
+  AOSP platform test key) only if it needs privileges.
+
+### Order of work
+
+1. Finish + verify dump (safety net).
+2. Disable the OTA updater BEFORE the box goes back on Wi-Fi.
+3. Resolve unknowns 1-5.
+4. Toolchain on the Mac, then build the app.
+
+### Mac toolchain (installed 2026-11-23)
+
+| Tool | Version | Where |
+|---|---|---|
+| JDK | 21.0.13 (keg-only) | /opt/homebrew/opt/openjdk@21 - use as JAVA_HOME for builds; system default stays Temurin 26 |
+| Gradle | 9.9.2 | brew |
+| jadx / apktool | 1.5.7 / 3.0.3 | brew |
+| Android SDK root | - | /opt/homebrew/share/android-commandlinetools |
+| platform / build-tools | android-36 / 36.1.0 | (compile against 36, minSdk/targetSdk 22) |
+| platform-tools | 37.0.3 | adb is also on PATH from brew |
+
+Only `android-sdk-license` is accepted (approved 2026-11-23). sdkmanager's
+`--licenses` accepts every listed license at once; the extras were removed
+afterwards. Accept others individually if a future package needs them.
