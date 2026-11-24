@@ -14,16 +14,22 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
 
-        <!-- M0: a normal launcher entry. HOME registration comes in M5. -->
+        <!-- The box's home screen (M5). Once the stock app is disabled it is the
+             only HOME activity, so Android starts it at boot with no chooser. -->
         <activity
             android:name=".HomeActivity"
             android:exported="true"
             android:launchMode="singleTask"
+            android:stateNotNeeded="true"
+            android:clearTaskOnLaunch="true"
+            android:excludeFromRecents="true"
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 

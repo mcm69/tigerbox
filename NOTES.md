@@ -557,3 +557,42 @@ Findings:
 - The box's timezone is Europe/Amsterdam (UTC+1) while the Mac is on
   UTC+2. Bedtime follows the box's timezone; left as is for now.
 - afconvert: no fixed `-b` bitrate (128 kbps fails on `say`'s 22 kHz mono).
+
+## M5 done (2026-11-24): system app, HOME, stock app off
+
+- `audiobox install` put the app in `/system/priv-app/audiobox`: flags
+  SYSTEM + PRIVILEGED, `SHUTDOWN` and `SET_TIME` granted. The manifest
+  now registers `HomeActivity` as HOME (+ DEFAULT).
+- `audiobox lockdown` (new; `--undo` reverses it) disables the updater,
+  NFC, managed provisioning, mediafloat and LatinIME, and switches off
+  the stock app *component by component*.
+- **Trap found: the stock app can't be disabled as a package.** Rockchip/
+  tigerbox patched `DevicePolicyManagerService.systemReady()` with a
+  `silentlyActivateDeviceAdminIfNeeded()` that hard-codes
+  `media.tiger.tigerbox/.TigerBoxDeviceAdminReceiver` and calls
+  `findAdmin()`, which throws "Unknown admin" when the receiver doesn't
+  resolve. After `pm disable media.tiger.tigerbox`, system_server crashed
+  at boot phase 480 and restarted every ~9 s (soft boot loop; adb root
+  still worked). Removing the APK would do the same. Recovered by `stop`,
+  editing `/data/system/users/0/package-restrictions.xml` (package
+  enabled, 15 components disabled, admin receiver left on), `start`.
+  Now logs "Admin already active" and the stock process never starts.
+  **If a boot loop ever recurs: check logcat for "Unknown admin".**
+- Clean cold boot: system_server starts once, `boot_completed` within
+  seconds of adb, audiobox focused, no LMK kills, no FATAL in logcat.
+  PSS: system 39 MB, systemui 29 MB, audiobox 14 MB; ~110 MB free plus
+  ~190 MB cache (was: stock app 71 MB + kills at boot).
+- `com.android.nfc` still runs (8.6 MB) although disabled: 5.1 starts
+  persistent apps regardless. Harmless; `pm hide` could be tried if RAM
+  ever gets tight.
+- Clock set from the admin screen works now (moved the hour and back).
+- Big-button hold powers off: raw key down via `sendevent`, "big button
+  held: powering off" exactly 3.0 s later, `ShutdownThread` starts ~0.5 s
+  after that (resume saved first), clean low-level shutdown.
+- The stock app no longer drives the LEDs, so the ring and head are ours.
+- Not handled yet: the stock app listened for `com.android.bts84.Abnormal_current`
+  (an over-current safeguard broadcast from the board's service). Its
+  receiver is now off; audiobox should take over that broadcast later
+  (unknown what the stock app did with it).
+- Still to do: a day of use with no LMK kills (spec's "done when"); the
+  optional `install-recovery.sh` for `/dev/i2c-2` (bottom light).

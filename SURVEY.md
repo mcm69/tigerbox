@@ -84,7 +84,7 @@ that never starts saves nothing. So the list is short:
 
 | Package | Saves | Verdict | Why |
 |---|---:|---|---|
-| `media.tiger.tigerbox` | 70.7 MB | **disable** — *after* our launcher is installed | it is the current HOME app; disabling it first leaves the box with no home screen |
+| `media.tiger.tigerbox` | 70.7 MB | **disable its components, not the package** — *after* our launcher is installed | it is the current HOME app. Disabling the whole package boot-loops the box: a vendor patch in system_server requires its device-admin receiver (found 2026-11-24, see NOTES.md M5; `tools/audiobox lockdown` does it right) |
 | `android.rockchip.update.service` | 6.6 MB | **disable** | installs OTA updates (section 5) |
 | `com.android.inputmethod.latin` | 10.0 MB | **disable** — after Wi-Fi is set up, if ever | the kiosk needs no keyboard, but typing a Wi-Fi password does |
 | `com.android.nfc` | 5.7 MB | **disable, then check** | not used: the card reader bypasses it entirely (section 3). Persistent system app, so confirm nothing complains |

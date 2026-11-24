@@ -11,6 +11,7 @@
     audiobox time                         set the box clock (and RTC) from this Mac
     audiobox pin-reset                    remove the admin PIN
     audiobox install APK                  install the app into /system/priv-app + reboot
+    audiobox lockdown [--undo]            switch off the stock app and unused packages
     audiobox reload                       tell the app to rescan
 
 Needs adb on PATH and one box connected. Commands that change files end with
@@ -36,6 +37,32 @@ PLAYABLE = {".mp3", ".m4a", ".aac", ".mp4", ".ogg", ".oga", ".flac", ".wav"}
 CONVERTIBLE = {".aif", ".aiff", ".aifc", ".caf", ".m4b", ".opus", ".wave"}
 ICONS = {".png", ".jpg", ".jpeg"}
 BOOL_KEYS = {"resume", "shuffle", "bedtime", "hidden"}
+
+# M5: packages the box doesn't need (SURVEY.md section 1).
+UNUSED = ["android.rockchip.update.service", "com.android.nfc",
+          "com.android.managedprovisioning", "com.android.rk.mediafloat",
+          "com.android.inputmethod.latin"]
+# The stock app can't be disabled as a whole: the vendor's
+# DevicePolicyManagerService looks up its device-admin receiver at every boot
+# and crashes system_server if it can't resolve it (NOTES.md, M5). So the
+# package stays enabled and every component except that receiver (and the
+# androidx startup provider, which its process needs if it is ever started)
+# is disabled instead.
+STOCK = "media.tiger.tigerbox"
+STOCK_OFF = [STOCK + c for c in (
+    ".ui.main.MainContentActivity", ".ui.update.UpdateActivity",
+    ".ui.settings.SettingsActivity", ".ui.LauncherActivity",
+    ".ui.onboarding.OnboardingActivity",
+    ".services.implementations.NightLightTimerReceiver",
+    ".services.implementations.UpdateCheckTimerReceiver",
+    ".services.implementations.receiver.DateChangeBroadcastReceiver",
+    ".services.implementations.receiver.WindowedLimitBroadcastReceiver",
+    ".services.implementations.receiver.ButtonBroadcastReceiver",
+    ".services.implementations.receiver.DisplayBroadcastReceiver",
+    ".services.implementations.receiver.SafeguardBroadcastReceiver",
+    ".services.implementations.receiver.HeadsetBroadcastReceiver")] + [
+    "androidx.room.MultiInstanceInvalidationService",
+    "androidx.profileinstaller.ProfileInstallReceiver"]
 
 
 class Fail(Exception):
@@ -377,6 +404,26 @@ def cmd_install(a):
     adb("reboot")
 
 
+def cmd_lockdown(a):
+    if "uid=0" not in adb("shell", "id"):
+        adb("root")
+        adb("wait-for-device")
+    if not a.undo and PKG not in sh("pm list packages -s"):
+        raise Fail("install audiobox as a system app first (audiobox install), "
+                   "or the box is left without a home screen")
+    verb = "enable" if a.undo else "disable"
+    # Never disable the stock package itself (see STOCK_OFF); make sure it is on.
+    sh(f"pm enable {STOCK} >/dev/null")
+    for c in STOCK_OFF:
+        sh(f"pm {verb} {STOCK}/{c} >/dev/null")
+    print(f"stock app: {len(STOCK_OFF)} components {verb}d, device-admin receiver left on")
+    for p in UNUSED:
+        sh(f"pm {verb} {p} >/dev/null")
+        print(f"{p}: {verb}d")
+    print("reboot the box to apply" if not a.undo else
+          "undone; the stock app is a HOME app again, so Android will ask which one to use")
+
+
 def cmd_reload(_):
     reload()
     print("reload sent")
@@ -412,6 +459,9 @@ def main():
     pi = sub.add_parser("install")
     pi.add_argument("apk")
     pi.set_defaults(fn=cmd_install)
+    pl = sub.add_parser("lockdown")
+    pl.add_argument("--undo", action="store_true", help="enable everything again")
+    pl.set_defaults(fn=cmd_lockdown)
     sub.add_parser("reload").set_defaults(fn=cmd_reload)
     a = p.parse_args()
     try:

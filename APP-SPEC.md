@@ -224,6 +224,7 @@ audiobox rm <id>                       # delete a playlist (asks first)
 audiobox time                          # set the box clock from the Mac (root via adb root)
 audiobox pin-reset
 audiobox install <apk>                 # copy to /system/priv-app (already rw) + reboot
+audiobox lockdown [--undo]             # stock app and unused packages off (section 11)
 ```
 
 Every command that changes something ends with the `RELOAD` broadcast. Pushing runs at about
@@ -231,13 +232,15 @@ Every command that changes something ends with the `RELOAD` broadcast. Pushing r
 
 ## 11. Memory and stock apps
 
-Per §1/§8: after the app is HOME and working, `pm disable` the stock app, the updater, NFC,
-managed provisioning, mediafloat and LatinIME. Target: no `lowmemorykiller` kills in a full day
+Per §1/§8: after the app is HOME and working, `pm disable` the updater, NFC, managed
+provisioning, mediafloat and LatinIME, and every component of the stock app except its
+device-admin receiver (disabling the whole package boot-loops the box; NOTES.md M5). Done by
+`tools/audiobox lockdown`. Target: no `lowmemorykiller` kills in a full day
 of use.
 
 ## 12. Milestones
 
-**Progress (2026-11-24):** M0–M4 done and verified on the box (see NOTES.md); M5 not started.
+**Progress (2026-11-24):** M0–M5 done and verified on the box (see NOTES.md). Open from M5: a full day without LMK kills, and the optional `/dev/i2c-2` script.
 
 | | Scope | Done when |
 |---|---|---|
