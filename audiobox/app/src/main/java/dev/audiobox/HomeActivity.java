@@ -137,6 +137,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        icons.face = covers.face = Ui.font(this);
         store = new Store(new File(Environment.getExternalStorageDirectory(), "audiobox"));
         audio = (AudioManager) getSystemService(AUDIO_SERVICE);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);

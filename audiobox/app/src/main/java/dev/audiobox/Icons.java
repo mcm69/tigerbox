@@ -32,6 +32,9 @@ final class Icons {
         }
     };
 
+    /** Letter-tile font; HomeActivity sets it to the app font. */
+    Typeface face = Typeface.DEFAULT_BOLD;
+
     Icons(int sizePx) {
         this.size = sizePx;
     }
@@ -124,7 +127,7 @@ final class Icons {
         String letter = p.label.isEmpty() ? "?" : p.label.substring(0, p.label.offsetByCodePoints(0, 1));
         Paint t = new Paint(Paint.ANTI_ALIAS_FLAG);
         t.setColor(Color.WHITE);
-        t.setTypeface(Typeface.DEFAULT_BOLD);
+        t.setTypeface(face);
         t.setTextSize(size * 0.55f);
         t.setTextAlign(Paint.Align.CENTER);
         float y = size / 2f - (t.descent() + t.ascent()) / 2f;

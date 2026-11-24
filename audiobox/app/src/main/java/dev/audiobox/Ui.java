@@ -21,8 +21,11 @@ final class Ui {
     private Ui() {}
 
     /**
-     * The playful font (APP-SPEC section 7): assets/fonts/fredoka.ttf when it has
-     * been added, otherwise the system's bold sans-serif.
+     * The playful font (APP-SPEC section 7): Fredoka SemiBold (OFL, see
+     * assets/fonts/OFL.txt), a static instance of the Google Fonts variable font
+     * since API 22 can't pick a weight from a variable font. Glyphs it lacks
+     * (the PIN pad's arrow and cross, the dots) come from the system fallback.
+     * Falls back to the system's bold sans-serif if the asset can't be read.
      */
     static synchronized Typeface font(Context c) {
         if (font == null) {

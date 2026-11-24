@@ -512,9 +512,8 @@ counting (12 tracks, natural order), secret (hidden).
   yellow on low battery, red while the button is held). NB: the stock
   tigerbox app still runs and drives the same LEDs until it's disabled in
   M5, so what you see now is a mix of both.
-- **Font still to add:** `Ui.font()` loads `assets/fonts/fredoka.ttf` if it
-  exists and falls back to the system bold sans. Fetching Fredoka (SIL OFL,
-  from the google/fonts repo) needs an OK for the download.
+- **Font:** `Ui.font()` loads `assets/fonts/fredoka.ttf` (added 2026-11-24,
+  see the M5 section) and falls back to the system bold sans.
 
 ## M3 done (2026-11-24): admin screen and parental controls
 
@@ -596,3 +595,10 @@ Findings:
   (unknown what the stock app did with it).
 - Still to do: a day of use with no LMK kills (spec's "done when"); the
   optional `install-recovery.sh` for `/dev/i2c-2` (bottom light).
+- Font added (OK given 2026-11-24): `Fredoka[wdth,wght].ttf` + `OFL.txt`
+  from google/fonts `ofl/fredoka` (no Reserved Font Name), cut to a static
+  SemiBold (wght 600, wdth 100) with fontTools' instancer because API 22
+  can't select a weight from a variable font; 50 KB. Shipped as
+  `assets/fonts/fredoka.ttf` with `OFL.txt` next to it. Letter tiles use it
+  too. Glyphs it lacks (← ✕ ● ○) fall back to the system font, checked on
+  the box. A cold power-on from off also booted cleanly into audiobox.
