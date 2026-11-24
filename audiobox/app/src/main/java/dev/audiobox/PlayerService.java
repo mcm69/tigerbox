@@ -527,13 +527,34 @@ public class PlayerService extends Service {
      * After a RELOAD, pick up a changed label, icon or flags of the loaded
      * playlist so the player screen shows them. Only when its tracks are the
      * same: the play order and position index into them. Changed tracks are
-     * picked up the next time the playlist is loaded.
+     * picked up the next time the playlist is loaded. A playlist that was
+     * removed is unloaded, so the player can't offer it any more.
      */
     private void refreshLoaded() {
         if (playlist == null) return;
         Playlist fresh = find(playlist.id);
-        if (fresh == null || !fresh.tracks.equals(playlist.tracks)) return;
+        if (fresh == null) {
+            unload();
+            return;
+        }
+        if (!fresh.tracks.equals(playlist.tracks)) return;
         playlist = fresh;
+        changed();
+    }
+
+    /** Stop and forget the loaded playlist; the home screen goes back to the grid. */
+    private void unload() {
+        Log.i(TAG, "unload " + playlist.id + ": no longer in the library");
+        wantPlaying = false;
+        cancelSleepTimer();
+        if (fading) endFade();
+        main.removeCallbacks(periodicSave);
+        releasePlayer();
+        if (playlist.id.equals(book.last())) {
+            book.setLast(null); // the play button then has nothing to resume
+            persist();
+        }
+        playlist = null;
         changed();
     }
 

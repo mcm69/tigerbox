@@ -273,9 +273,10 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     public void onPlayerChanged(PlayerService.Snapshot s) {
         boolean newPlaylist = s.playlist != null
                 && (snap.playlist == null || !snap.playlist.id.equals(s.playlist.id));
+        boolean unloaded = s.playlist == null && snap.playlist != null;
         snap = s;
         showPlayer(s);
-        if (newPlaylist) layoutPage(); // move the "playing" highlight
+        if (newPlaylist || unloaded) layoutPage(); // move the "playing" highlight
         else refreshBadges();
     }
 
