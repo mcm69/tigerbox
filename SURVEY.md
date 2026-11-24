@@ -502,9 +502,27 @@ antenna overhanging the edge appears on both sides.
 
 - One sound card, `RK_RK312X`: playback paths `SPK`, `HP`, `BT` and more
   (`tinymix "Playback Path"`), speaker amp enable on GPIO 30.
-- **Stereo, probably**: the speaker amp is fed from both `HPOUTL` and
-  `HPOUTR`, and the board has `SPKL` / `SPKR` pads. Confirming two speakers
-  needs a left/right test with someone listening.
+- **Stereo works on both speakers** (fixed 2026-11-24). Diagnosis, tested
+  2026-11-23 with a clip of left-only (low), right-only (high), then both
+  beeps (`tinymix "Playback Path" SPK` + `tinyplay`):
+  1. as found: the left-only (low) beeps were silent;
+  2. after reseating the speaker plugs: unchanged;
+  3. after **swapping the L and R speaker plugs**: the low beeps played and
+     the *right-only (high)* beeps went silent — the silence followed the
+     speaker, so the board's outputs and amplifier were fine.
+  The stock app's startup sound also played from one side only, so the
+  fault predates our work. An iFixit teardown of a related tigerbox (pink
+  case, probably the plain TOUCH) shows two side-mounted speakers soldered
+  to red/black pairs.
+  **Cause and fix:** a bad solder joint on the left speaker's negative
+  contact; reflowing it fixed it. Re-tested 2026-11-24 with the plugs back
+  in their original places: low on the left, high on the right, both
+  together. The app can play stereo as-is, no mono downmix needed.
+- **Microphone paths** (`tinymix "Capture MIC Path"`): `Main Mic` (built-in),
+  `Hands Free Mic` (headset mic via the socket), `BT Sco Mic`. Neither
+  physical mic is confirmed. Plugging in wired headphones would show via
+  `/sys/class/switch/h2w/state`: `1` = headset with mic, `2` = plain
+  headphones — no recording needed.
 - **Headphone detection exists** (`/sys/class/switch/h2w`, currently 0 =
   nothing plugged in). **The PLUS has a 3.5 mm headphone socket** (confirmed
   by eye 2026-11-23).
