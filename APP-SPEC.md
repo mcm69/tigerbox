@@ -150,8 +150,8 @@ app's `/sdcard/tigerbox` logs folder is left alone.
 - *Grid (home):* a 4 × 2 grid of icons, each about 170 × 170 with its short label below
   **(decided: icons with labels)**. With more
   than 8 playlists it scrolls sideways a page at a time, with page dots. The playlist that's
-  currently loaded has a highlight ring and a small "playing" badge. A battery indicator sits
-  in a corner. There is no other chrome.
+  currently loaded has a highlight ring and a small "playing" badge. A 24-hour clock sits
+  top left and a battery indicator top right. There is no other chrome.
 - *Player:* the large icon (≈ 360 × 360) on the left. On the right: the label, the track
   position (dots for small playlists, "3 / 12" otherwise), big ⏮ ⏯ ⏭, a volume control (two
   big −/+ with a bar up to the cap), the sleep timer moon (section 8), and a large "back to

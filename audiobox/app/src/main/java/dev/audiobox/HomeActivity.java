@@ -28,6 +28,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextClock;
 import android.widget.TextView;
 
 import java.io.File;
@@ -282,6 +283,21 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         FrameLayout.LayoutParams blp = new FrameLayout.LayoutParams(48, 24, Gravity.TOP | Gravity.END);
         blp.setMargins(0, 12, 16, 0);
         screen.addView(battery, blp);
+
+        // Clock, opposite the battery. 24-hour whatever the system setting;
+        // it sits under the admin corner, which still gets the touches.
+        TextClock clock = new TextClock(this);
+        clock.setFormat24Hour("H:mm");
+        clock.setFormat12Hour("H:mm");
+        clock.setTextSize(22);
+        clock.setTextColor(Ui.TEXT);
+        clock.setTypeface(Ui.font(this));
+        clock.setIncludeFontPadding(false);
+        FrameLayout.LayoutParams clk = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP | Gravity.START);
+        clk.setMargins(20, 8, 0, 0);
+        screen.addView(clock, clk);
 
         tiles = new FrameLayout(this);
         FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(800, 400, Gravity.TOP);
