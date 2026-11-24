@@ -1,0 +1,428 @@
+#!/usr/bin/env python3
+"""audiobox: manage the audio box from the Mac over adb (APP-SPEC section 10).
+
+    audiobox status                       battery, free space, clock, playlists
+    audiobox push DIR [ID] [options]      copy a folder of audio in as a playlist
+          --label TEXT  --icon FILE  --no-resume  --shuffle  --bedtime  --hidden
+          --transcode   (convert formats the box can't play to AAC with afconvert)
+    audiobox list                         playlists with settings and size
+    audiobox set ID key=value ...         label, order, resume, shuffle, bedtime, hidden
+    audiobox rm ID                        delete a playlist from the box (asks first)
+    audiobox time                         set the box clock (and RTC) from this Mac
+    audiobox pin-reset                    remove the admin PIN
+    audiobox install APK                  install the app into /system/priv-app + reboot
+    audiobox reload                       tell the app to rescan
+
+Needs adb on PATH and one box connected. Commands that change files end with
+the app's RELOAD broadcast, so the box picks the change up at once.
+"""
+import argparse
+import datetime
+import json
+import os
+import re
+import shlex
+import subprocess
+import sys
+import tempfile
+
+ROOT = "/sdcard/audiobox"
+LIB = ROOT + "/library"
+PKG = "dev.audiobox"
+RELOAD = "dev.audiobox.RELOAD"
+# What Android 5.1 decodes natively (APP-SPEC 5.1); Opus left out until tested.
+PLAYABLE = {".mp3", ".m4a", ".aac", ".mp4", ".ogg", ".oga", ".flac", ".wav"}
+# What afconvert can read and we're willing to convert.
+CONVERTIBLE = {".aif", ".aiff", ".aifc", ".caf", ".m4b", ".opus", ".wave"}
+ICONS = {".png", ".jpg", ".jpeg"}
+BOOL_KEYS = {"resume", "shuffle", "bedtime", "hidden"}
+
+
+class Fail(Exception):
+    pass
+
+
+# --- adb helpers -------------------------------------------------------------
+
+def adb(*args, check=True, capture=True, quiet=False):
+    cmd = ["adb", *args]
+    r = subprocess.run(cmd, capture_output=capture, text=True)
+    if check and r.returncode != 0:
+        msg = (r.stderr or r.stdout or "").strip()
+        raise Fail(f"adb {' '.join(args)} failed: {msg}")
+    return r.stdout.replace("\r", "") if capture else ""
+
+
+def sh(command, check=True):
+    """Runs a shell command on the box. Android 5.1's adb shell doesn't return
+    the exit status, so we echo it and check it here."""
+    out = adb("shell", command + "; echo __rc=$?")
+    m = re.search(r"__rc=(\d+)\s*$", out)
+    rc = int(m.group(1)) if m else 1
+    out = out[: m.start()] if m else out
+    if check and rc != 0:
+        raise Fail(f"on the box: {command!r} failed ({rc}): {out.strip()}")
+    return out
+
+
+def q(path):
+    return shlex.quote(path)
+
+
+def ensure_device():
+    out = adb("devices")
+    devices = [l.split()[0] for l in out.splitlines()[1:] if l.strip().endswith("device")]
+    if not devices:
+        raise Fail("no box connected (adb devices is empty) - check the USB-C-to-A adapter")
+    if len(devices) > 1:
+        raise Fail("more than one adb device; set ANDROID_SERIAL")
+
+
+def read_json(name):
+    out = adb("shell", f"cat {q(ROOT + '/' + name)} 2>/dev/null")
+    try:
+        return json.loads(out) if out.strip() else {}
+    except json.JSONDecodeError:
+        raise Fail(f"{name} on the box isn't valid JSON - fix or delete it first")
+
+
+def write_json(name, data):
+    """Push to a temp name, then rename on the box, so the app never reads half a file."""
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+        tmp = f.name
+    try:
+        remote_tmp = f"{ROOT}/{name}.push"
+        adb("push", tmp, remote_tmp)
+        sh(f"mv {q(remote_tmp)} {q(ROOT + '/' + name)}")
+    finally:
+        os.unlink(tmp)
+
+
+def reload():
+    adb("shell", f"am broadcast -a {RELOAD}")
+
+
+def remote_sizes(remote_dir):
+    """{filename: size} for files directly in remote_dir."""
+    # Toolbox ls -l: perms owner group size date time name (busybox has no stat).
+    out = sh(f"[ -d {q(remote_dir)} ] && ls -l {q(remote_dir)}; true")
+    sizes = {}
+    for line in out.splitlines():
+        f = line.split(None, 6)
+        if len(f) == 7 and f[0].startswith("-") and f[3].isdigit():
+            sizes[f[6]] = int(f[3])
+    return sizes
+
+
+def slug(name):
+    s = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    return s or "playlist"
+
+
+def entry(lib, pid):
+    lib.setdefault("version", 1)
+    return lib.setdefault("playlists", {}).setdefault(pid, {})
+
+
+# --- commands ----------------------------------------------------------------
+
+def cmd_status(_):
+    batt = adb("shell", "dumpsys battery")
+    level = re.search(r"level: (\d+)", batt)
+    ac = re.search(r"AC powered: (\w+)", batt)
+    usb = re.search(r"USB powered: (\w+)", batt)
+    charging = (ac and ac.group(1) == "true") or (usb and usb.group(1) == "true")
+    free = "?"
+    for line in sh("df /data").splitlines():  # toolbox df: Filesystem Size Used Free Blksize
+        f = line.split()
+        if f and f[0] == "/data" and len(f) >= 4:
+            free = f[3]
+    box_time = sh("date '+%Y-%m-%d %H:%M:%S %Z'").strip()
+    running = PKG in adb("shell", "ps")
+    lib = read_json("library.json").get("playlists", {})
+    dirs = [d for d in sh(f"ls {q(LIB)} 2>/dev/null; true").split("\n") if d.strip()]
+    print(f"battery    {level.group(1) if level else '?'} %{', charging' if charging else ''}")
+    print(f"free       {free} on /data")
+    print(f"box clock  {box_time}   (Mac: {datetime.datetime.now():%Y-%m-%d %H:%M:%S})")
+    print(f"app        {'running' if running else 'not running'}")
+    print(f"playlists  {len(dirs)} folders, {len(lib)} with settings")
+    state = read_json("state.json")
+    if state.get("last"):
+        print(f"last       {state['last']}")
+
+
+def cmd_list(_):
+    lib = read_json("library.json").get("playlists", {})
+    out = sh(f"cd {q(LIB)} 2>/dev/null && for d in *; do [ -d \"$d\" ] && "
+             f"echo \"$d|$(busybox find \"$d\" -maxdepth 1 -type f | busybox wc -l)|"
+             f"$(busybox du -sk \"$d\" | busybox cut -f1)\"; done; true")
+    rows = []
+    for line in out.splitlines():
+        parts = line.split("|")
+        if len(parts) == 3:
+            pid, files, kb = parts[0], int(parts[1]), int(parts[2])
+            s = lib.get(pid, {})
+            flags = [k for k in ("shuffle", "bedtime", "hidden") if s.get(k)]
+            if s.get("resume") is False:
+                flags.append("no-resume")
+            rows.append((s.get("order", 10**6), s.get("label", pid).lower(), pid, s.get("label", pid),
+                         files, kb, flags))
+    if not rows:
+        print("no playlists on the box")
+        return
+    rows.sort()
+    print(f"{'id':<20} {'label':<18} {'files':>5} {'size':>8}  flags")
+    for _, _, pid, label, files, kb, flags in rows:
+        print(f"{pid:<20} {label:<18} {files:>5} {kb / 1024:>6.1f}MB  {' '.join(flags)}")
+    for pid in lib:
+        if pid not in {r[2] for r in rows}:
+            print(f"(library.json has settings for {pid!r}, but there's no such folder)")
+
+
+def cmd_push(a):
+    src = os.path.abspath(a.dir)
+    if not os.path.isdir(src):
+        raise Fail(f"{a.dir} is not a folder")
+    pid = a.id or slug(os.path.basename(src))
+    if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", pid):
+        raise Fail(f"id {pid!r}: use lowercase letters, digits, '-', '_' or '.'")
+
+    files, skipped, convert = [], [], []
+    for name in sorted(os.listdir(src)):
+        path = os.path.join(src, name)
+        if name.startswith(".") or not os.path.isfile(path):
+            continue
+        ext = os.path.splitext(name)[1].lower()
+        if ext in PLAYABLE:
+            files.append((path, name))
+        elif ext in ICONS and os.path.splitext(name)[0].lower() == "icon":
+            files.append((path, "icon" + ext))
+        elif ext in CONVERTIBLE:
+            convert.append((path, name))
+        elif a.icon and os.path.abspath(path) == os.path.abspath(a.icon):
+            continue  # pushed as icon.* below
+        else:
+            skipped.append(name)
+
+    tmpdir = None
+    if convert:
+        if not a.transcode:
+            raise Fail(f"{len(convert)} file(s) need converting (e.g. {convert[0][1]}); "
+                       "rerun with --transcode")
+        tmpdir = tempfile.mkdtemp(prefix="audiobox-")
+        for path, name in convert:
+            out = os.path.join(tmpdir, os.path.splitext(name)[0] + ".m4a")
+            # No fixed bitrate: afconvert picks one that suits the source's rate/channels.
+            r = subprocess.run(["afconvert", "-f", "m4af", "-d", "aac", path, out],
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                skipped.append(f"{name} (afconvert failed)")
+                continue
+            files.append((out, os.path.basename(out)))
+            print(f"converted  {name} -> {os.path.basename(out)}")
+    if a.icon:
+        ext = os.path.splitext(a.icon)[1].lower()
+        if ext not in ICONS:
+            raise Fail("--icon must be a .png or .jpg")
+        files = [f for f in files if not f[1].startswith("icon.")]
+        files.append((os.path.abspath(a.icon), "icon" + ext))
+    if not any(os.path.splitext(n)[1].lower() in PLAYABLE for _, n in files):
+        raise Fail("no playable audio in that folder")
+
+    dest = f"{LIB}/{pid}"
+    sh(f"mkdir -p {q(dest)}")
+    have = remote_sizes(dest)
+    sent = 0
+    total = sum(os.path.getsize(p) for p, n in files if have.get(n) != os.path.getsize(p))
+    for path, name in files:
+        size = os.path.getsize(path)
+        if have.get(name) == size:
+            continue
+        print(f"push       {name} ({size / 1048576:.1f} MB)")
+        adb("push", path, f"{dest}/{name}")
+        sent += size
+    if tmpdir:
+        for n in os.listdir(tmpdir):
+            os.unlink(os.path.join(tmpdir, n))
+        os.rmdir(tmpdir)
+
+    lib = read_json("library.json")
+    e = entry(lib, pid)
+    if a.label:
+        e["label"] = a.label
+    elif "label" not in e:
+        e["label"] = os.path.basename(src)[:24]
+    for key, val in (("resume", False if a.no_resume else None), ("shuffle", a.shuffle or None),
+                     ("bedtime", a.bedtime or None), ("hidden", a.hidden or None)):
+        if val is not None:
+            e[key] = val
+    write_json("library.json", lib)
+    reload()
+    print(f"done       {pid}: {len(files)} files on the box, {sent / 1048576:.1f} of "
+          f"{total / 1048576:.1f} MB sent")
+    for s in skipped:
+        print(f"skipped    {s}")
+
+
+def parse_value(key, raw):
+    if key in BOOL_KEYS:
+        if raw.lower() in ("1", "true", "yes", "on"):
+            return True
+        if raw.lower() in ("0", "false", "no", "off"):
+            return False
+        raise Fail(f"{key} takes true/false")
+    if key == "order":
+        if raw.lower() in ("", "none", "null"):
+            return None
+        return int(raw)
+    if key == "label":
+        return raw
+    raise Fail(f"unknown key {key!r} (label, order, {', '.join(sorted(BOOL_KEYS))})")
+
+
+def cmd_set(a):
+    lib = read_json("library.json")
+    if not sh(f"[ -d {q(LIB + '/' + a.id)} ] && echo yes; true").strip():
+        raise Fail(f"no playlist folder {a.id!r} on the box (see: audiobox list)")
+    e = entry(lib, a.id)
+    for kv in a.pairs:
+        if "=" not in kv:
+            raise Fail(f"expected key=value, got {kv!r}")
+        k, v = kv.split("=", 1)
+        val = parse_value(k.strip(), v.strip())
+        if val is None:
+            e.pop(k.strip(), None)
+        else:
+            e[k.strip()] = val
+    write_json("library.json", lib)
+    reload()
+    print(f"{a.id}: {json.dumps(e, ensure_ascii=False)}")
+
+
+def cmd_rm(a):
+    path = f"{LIB}/{a.id}"
+    if not sh(f"[ -d {q(path)} ] && echo yes; true").strip():
+        raise Fail(f"no playlist {a.id!r} on the box")
+    count = sh(f"busybox find {q(path)} -type f | busybox wc -l").strip()
+    if not a.yes:
+        answer = input(f"Delete {a.id} ({count} files) from the box? This can't be undone. [y/N] ")
+        if answer.strip().lower() not in ("y", "yes"):
+            print("kept")
+            return
+    sh(f"rm -r {q(path)}")
+    lib = read_json("library.json")
+    if lib.get("playlists", {}).pop(a.id, None) is not None:
+        write_json("library.json", lib)
+    reload()
+    print(f"deleted {a.id}")
+
+
+def cmd_time(_):
+    # adbd must run as root to set the clock; `adb root` is lost on every reboot.
+    if "uid=0" not in adb("shell", "id"):
+        adb("root")
+        adb("wait-for-device")
+    # Toolbox `date -s` reads the time as LOCAL time in the box's timezone (it
+    # ignores -u), and sets the system clock and the RTC together (/dev/alarm).
+    tz = adb("shell", "getprop persist.sys.timezone").strip() or "UTC"
+    try:
+        from zoneinfo import ZoneInfo
+        box_zone = ZoneInfo(tz)
+    except Exception:
+        raise Fail(f"unknown box timezone {tz!r}")
+    now = datetime.datetime.now(datetime.timezone.utc)
+    sh(f"date -s {now.astimezone(box_zone):%Y%m%d.%H%M%S} >/dev/null")
+    print("box clock now", sh("date '+%Y-%m-%d %H:%M:%S %Z'").strip(), f"({tz})")
+    mac_offset = datetime.datetime.now().astimezone().utcoffset()
+    if now.astimezone(box_zone).utcoffset() != mac_offset:
+        print(f"note: the box's timezone ({tz}) differs from this Mac's "
+              f"(UTC{_fmt_offset(mac_offset)}); bedtime follows the box's.")
+
+
+def _fmt_offset(td):
+    minutes = int(td.total_seconds() // 60)
+    sign = "+" if minutes >= 0 else "-"
+    return f"{sign}{abs(minutes) // 60:02d}:{abs(minutes) % 60:02d}"
+
+
+def cmd_pin_reset(_):
+    s = read_json("settings.json")
+    if "pin" not in s:
+        print("no PIN set")
+        return
+    del s["pin"]
+    write_json("settings.json", s)
+    reload()
+    print("PIN removed: the admin screen opens without one until a new PIN is set")
+
+
+def cmd_install(a):
+    apk = os.path.abspath(a.apk)
+    if not apk.endswith(".apk") or not os.path.isfile(apk):
+        raise Fail("give the path to the built .apk")
+    if "uid=0" not in adb("shell", "id"):
+        adb("root")
+        adb("wait-for-device")
+    # A user-app copy would shadow the system one with a different signature
+    # history; remove it first. (Data in /sdcard/audiobox is untouched.)
+    if PKG in adb("shell", "pm list packages -3"):
+        print("removing the user-app install first")
+        adb("uninstall", PKG)
+    sh("mkdir -p /system/priv-app/audiobox && chmod 755 /system/priv-app/audiobox")
+    adb("push", apk, "/system/priv-app/audiobox/audiobox.apk")
+    sh("chmod 644 /system/priv-app/audiobox/audiobox.apk && sync")
+    print("installed to /system/priv-app/audiobox; rebooting")
+    adb("reboot")
+
+
+def cmd_reload(_):
+    reload()
+    print("reload sent")
+
+
+def main():
+    p = argparse.ArgumentParser(prog="audiobox", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = p.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("status").set_defaults(fn=cmd_status)
+    sub.add_parser("list").set_defaults(fn=cmd_list)
+    pp = sub.add_parser("push")
+    pp.add_argument("dir")
+    pp.add_argument("id", nargs="?")
+    pp.add_argument("--label")
+    pp.add_argument("--icon")
+    pp.add_argument("--no-resume", action="store_true")
+    pp.add_argument("--shuffle", action="store_true")
+    pp.add_argument("--bedtime", action="store_true")
+    pp.add_argument("--hidden", action="store_true")
+    pp.add_argument("--transcode", action="store_true")
+    pp.set_defaults(fn=cmd_push)
+    ps = sub.add_parser("set")
+    ps.add_argument("id")
+    ps.add_argument("pairs", nargs="+")
+    ps.set_defaults(fn=cmd_set)
+    pr = sub.add_parser("rm")
+    pr.add_argument("id")
+    pr.add_argument("-y", "--yes", action="store_true", help="don't ask")
+    pr.set_defaults(fn=cmd_rm)
+    sub.add_parser("time").set_defaults(fn=cmd_time)
+    sub.add_parser("pin-reset").set_defaults(fn=cmd_pin_reset)
+    pi = sub.add_parser("install")
+    pi.add_argument("apk")
+    pi.set_defaults(fn=cmd_install)
+    sub.add_parser("reload").set_defaults(fn=cmd_reload)
+    a = p.parse_args()
+    try:
+        ensure_device()
+        a.fn(a)
+    except Fail as e:
+        print(f"audiobox: {e}", file=sys.stderr)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        sys.exit(130)
+
+
+if __name__ == "__main__":
+    main()

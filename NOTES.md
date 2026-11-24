@@ -536,3 +536,24 @@ counting (12 tracks, natural order), secret (hidden).
   hold) and setting the clock from the admin screen. Until then the Mac
   tool sets the clock.
 - Test leftovers removed: settings.json deleted (= defaults, no PIN).
+
+## M4 done (2026-11-24): Mac tool `tools/audiobox`
+
+Python 3 over adb: `status`, `push DIR [ID] [--label --icon --no-resume
+--shuffle --bedtime --hidden --transcode]`, `list`, `set ID key=value`,
+`rm ID` (asks), `time`, `pin-reset`, `install APK` (priv-app, for M5),
+`reload`. JSON edits are pushed to a temp name and renamed on the box.
+Verified on the box: push with AIFF->AAC conversion and a separate icon,
+re-push skips unchanged files, set, list, rm, pin-reset, time.
+
+Findings:
+- Android 5.1's adb shell doesn't return exit codes; the tool echoes `$?`.
+- busybox here has no `stat`, `date` or `hwclock`; toolbox `ls -l` and
+  `df` are used instead.
+- **Toolbox `date -s` ignores `-u`** and takes local time in the box's
+  timezone; it sets the RTC too (checked via
+  /sys/class/rtc/rtc0/since_epoch). **The box clock is now correct**
+  (it read 2015-01-21 before).
+- The box's timezone is Europe/Amsterdam (UTC+1) while the Mac is on
+  UTC+2. Bedtime follows the box's timezone; left as is for now.
+- afconvert: no fixed `-b` bitrate (128 kbps fails on `say`'s 22 kHz mono).
