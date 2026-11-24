@@ -609,3 +609,8 @@ Findings:
   off -> grid. From the Mac: `adb shell input keyevent 3`. (`dumpsys
   activity`'s `mFocusedActivity` line can lag; `mResumedActivity` and
   `mFocusedStack` are the ones to trust.)
+- Timezone (2026-11-24): box set to Europe/Tallinn (`setprop
+  persist.sys.timezone`, applied by a reboot) to match the Mac, then the
+  clock set with `tools/audiobox time`; RTC agrees. Bedtime now follows
+  Tallinn time. The clock had been ~1 h fast after a visit to Android's
+  Date & time screen.
