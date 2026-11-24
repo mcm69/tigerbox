@@ -113,6 +113,17 @@ public class PlayerService extends Service {
         }
     };
 
+    /** Low battery turns the ring yellow (APP-SPEC section 9). */
+    private final android.content.BroadcastReceiver battery = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent i) {
+            int level = i.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, 100);
+            int scale = i.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, 100);
+            int plugged = i.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0);
+            Lights.get().lowBattery(plugged == 0 && scale > 0 && level * 100 / scale < 15);
+        }
+    };
+
     private final AudioManager.OnAudioFocusChangeListener focus = change -> {
         if (change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
             Log.i(TAG, "audio focus lost (" + change + "), pausing");
@@ -163,6 +174,7 @@ public class PlayerService extends Service {
         publishState();
 
         startForeground(NOTIFICATION_ID, notification());
+        registerReceiver(battery, new android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         Log.i(TAG, "PlayerService up, last=" + book.last());
     }
 
@@ -194,6 +206,7 @@ public class PlayerService extends Service {
         saveSpot();
         releasePlayer();
         session.release();
+        unregisterReceiver(battery);
         audio.abandonAudioFocus(focus);
         disk.shutdown();
         super.onDestroy();

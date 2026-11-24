@@ -497,3 +497,21 @@ counting (12 tracks, natural order), secret (hidden).
   press arrives at the MediaSession, the app wakes the screen, the release
   arrives at the activity, and the shared handler times it (short press =
   toggle, 3.5 s = power-off path).
+
+## M2 done (2026-11-24): kid UI, button, lights
+
+- Grid: 4 x 2 tiles per page, sideways swipe between pages with page dots,
+  the loaded playlist ringed (plus a play badge while playing), battery in
+  the corner. Player: big cover, label, track dots (or "3 / 12"), progress,
+  prev / play-pause / next, volume -/+ with a bar (step 5 of 100), home
+  button and swipe-right back to the grid. Verified on the box with 10
+  playlists; 13.3 MB PSS.
+- Swipes are detected in `dispatchTouchEvent`, because tiles consume
+  their own touches.
+- Lights follow the player (green steady / breathing, head dim / on,
+  yellow on low battery, red while the button is held). NB: the stock
+  tigerbox app still runs and drives the same LEDs until it's disabled in
+  M5, so what you see now is a mix of both.
+- **Font still to add:** `Ui.font()` loads `assets/fonts/fredoka.ttf` if it
+  exists and falls back to the system bold sans. Fetching Fredoka (SIL OFL,
+  from the google/fonts repo) needs an OK for the download.
