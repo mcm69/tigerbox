@@ -253,16 +253,38 @@ the touchscreen for play/pause and leave the button as power. Changing
 POWER itself would mean modifying `android.policy.jar` on `/system` — a
 bigger, riskier change.
 
-**Probably the best option:** the power key currently falls back to
-`Generic.kl`, because there is no `rk816_pwrkey.kl`. Android prefers a
-layout file named after the device, so adding
-`/system/usr/keylayout/rk816_pwrkey.kl` with
-`key 116 MEDIA_PLAY_PAUSE WAKE` would make the button a real play/pause key
-that still wakes the box. Undoing it is deleting one file. The catch: the
-box loses its software power key, so our app would have to provide
-long-press → power off itself (`android.permission.SHUTDOWN`, which needs
-the app in `/system/priv-app`). Untested — and needs a fallback plan before
-trying it, since ADB stays available either way.
+**Chosen (2026-11-24): remap it.** The power key falls back to
+`Generic.kl` because there is no `rk816_pwrkey.kl`, and Android prefers a
+layout file named after the device. **Tested live 2026-11-24**
+(`survey/raw/live/button-remap.txt`), then removed again until our app
+exists:
+
+- `/system/usr/keylayout/rk816_pwrkey.kl` containing
+  `key 116 MEDIA_PLAY_PAUSE` (mode 644) is picked up after a reboot.
+  The **`WAKE` flag from older docs is rejected on 5.1**
+  (`KeyLayoutMap: Expected key flag label, got 'WAKE'`) and the whole
+  file is then ignored.
+- **Screen on:** each short press arrives as keycode 85
+  (`MEDIA_PLAY_PAUSE`) down/up in the foreground window; the screen stays
+  on. The kernel still reports `KEY_POWER`; only Android's mapping changes.
+- **Screen off:** a short press reaches the kernel but doesn't wake the
+  screen, and nothing reaches the foreground window. Android hands media
+  keys to the registered `MediaSession` while the screen is off, so **our
+  app must use a `MediaSession`** to get presses then (not yet verified,
+  as nothing registered one during the test). If a press should also
+  light the screen, the app does that itself.
+- **Hardware power-off: holding the button for about 6-8 s cuts power in
+  the PMIC**, with no key-up event and no Android involvement. That's a
+  safety net if the app hangs.
+- **Power-on is unaffected** (handled by the PMIC / charger). With USB
+  connected, the box goes to the charging screen when off; there a short
+  press only shows the battery level and a ~3 s hold boots (Android's
+  `charger` reads the raw key, not the keymap).
+- Undo: delete the file and reboot.
+
+So the app provides play/pause via `MediaSession`, hold-to-power-off at
+~3 s (`android.permission.SHUTDOWN`, app in `/system/priv-app`; the
+6-8 s PMIC cut-off stays as the fallback) and an idle auto-off.
 
 ### Lights
 
@@ -563,8 +585,9 @@ Nothing below has been done; it's the plan this survey supports.
 1. ~~Live checks with you present~~ — done 2026-11-23: card path confirmed,
    button is POWER. Still to do with real NTAG stickers: one tap to see a
    7-byte UID and NDEF data.
-2. **Build our launcher app** and install it. Decide first how the button
-   should behave (section 4).
+2. **Build our launcher app** and install it. Button decided 2026-11-24:
+   remap it to play/pause via `rk816_pwrkey.kl` (section 4); the app does
+   hold-to-power-off and an idle auto-off, so it goes in `/system/priv-app`.
 3. **Make it the HOME app**, then disable `media.tiger.tigerbox`.
 4. Disable `android.rockchip.update.service`, `com.android.nfc`,
    `com.android.managedprovisioning`, `com.android.rk.mediafloat`, and

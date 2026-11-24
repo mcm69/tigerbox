@@ -410,8 +410,20 @@ launcher; the OEM apps get disabled (`pm disable`, reversible), not deleted.
 - Card registry: UID -> folder/playlist, a JSON file on /sdcard; a "learn
   card" mode to bind a new card to a folder.
 - Audio from /sdcard (6 GB free on /data).
-- Install as a user app first; move to /system/priv-app (or sign with the
-  AOSP platform test key) only if it needs privileges.
+- Install as a user app first; move to /system/priv-app only if it needs
+  privileges. (Signing with the AOSP platform test key does NOT work: the
+  box's platform cert is vendor-specific - see SURVEY.md section 6.)
+- **Big button (decided 2026-11-24): remap to play/pause; the app powers
+  off.** Add `/system/usr/keylayout/rk816_pwrkey.kl` with
+  `key 116 MEDIA_PLAY_PAUSE` (5.1 rejects the `WAKE` flag). Tested live
+  2026-11-24, see SURVEY.md section 4. Short press = play/pause (the app
+  must use a MediaSession to get it while the screen is off);
+  hold ~3 s = app shuts the box down; plus an idle auto-off timer. The app
+  then needs `android.permission.SHUTDOWN`, so it lives in
+  `/system/priv-app`. Power-ON is unaffected: the RK816 PMIC switches the
+  box on in hardware before Android runs. Fallbacks: holding the button
+  ~6-8 s cuts power in the PMIC; `adb shell reboot -p`; deleting the .kl
+  file restores the stock power key. The file is NOT on the box now.
 
 ### Order of work
 
