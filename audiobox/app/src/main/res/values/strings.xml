@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">audiobox</string>
     <string name="empty_library">No playlists yet.\nPush a folder to /sdcard/audiobox/library/</string>
+    <string name="bedtime">Sleep time</string>
 </resources>

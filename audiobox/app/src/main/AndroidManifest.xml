@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Only granted once installed in /system/priv-app (milestone M5). -->
     <uses-permission android:name="android.permission.SHUTDOWN" />
+    <uses-permission android:name="android.permission.SET_TIME" />
 
     <application
         android:allowBackup="false"
@@ -25,6 +26,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" />
 
         <service
             android:name=".PlayerService"

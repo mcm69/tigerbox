@@ -515,3 +515,24 @@ counting (12 tracks, natural order), secret (hidden).
 - **Font still to add:** `Ui.font()` loads `assets/fonts/fredoka.ttf` if it
   exists and falls back to the system bold sans. Fetching Fredoka (SIL OFL,
   from the google/fonts repo) needs an OK for the download.
+
+## M3 done (2026-11-24): admin screen and parental controls
+
+- **Admin:** hold the grid's top-left corner 5 s, then the PIN (own keypad;
+  no PIN set = opens directly, with a "Set PIN" button). Playlists:
+  reorder, resume / shuffle / bedtime / hidden toggles (renaming is a Mac
+  tool job: the on-screen keyboard will be disabled). Volume caps, sleep
+  default, idle auto-off minutes + "also while charging", bedtime window,
+  clock, PIN, system info, a way out to Android settings. Saves JSON and
+  sends RELOAD.
+- **Verified on the box:** speaker cap 30 % lowered the volume from 40 at
+  once; bedtime dims non-bedtime tiles and refuses them (overlay + red
+  ring flash); moon button cycles 15/30/45/off and shows the minutes;
+  sleep timer fades over 10 s and pauses mid-track (14.4 s into a 25.6 s
+  track); idle auto-off fires from AlarmManager, stays on while charging
+  by default, and with "also while charging" reaches the shutdown call;
+  PIN set twice, wrong PIN refused, right PIN opens admin.
+- Needs priv-app (M5) to take effect: shutdown (idle auto-off and button
+  hold) and setting the clock from the admin screen. Until then the Mac
+  tool sets the clock.
+- Test leftovers removed: settings.json deleted (= defaults, no PIN).

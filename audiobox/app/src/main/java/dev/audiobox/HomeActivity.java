@@ -76,6 +76,8 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private Ui.DotsView trackDots;
     private Ui.BarView progress, volumeBar;
     private ImageButton playPause;
+    private TextView sleepText;
+    private View bedtimeOverlay;
 
     private final BroadcastReceiver reload = new BroadcastReceiver() {
         @Override
@@ -146,6 +148,8 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         root.addView(gridScreen);
         root.addView(playerScreen);
         playerScreen.setVisibility(View.GONE);
+        bedtimeOverlay = buildBedtimeOverlay();
+        root.addView(bedtimeOverlay);
         setContentView(root);
 
         registerReceiver(reload, new IntentFilter(ACTION_RELOAD));
@@ -208,6 +212,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
             });
         }
         swipe.onTouchEvent(ev);
+        if (ev.getActionMasked() == MotionEvent.ACTION_DOWN && player != null) player.userActivity();
         return super.dispatchTouchEvent(ev);
     }
 
@@ -227,6 +232,34 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         return ButtonHandler.get(this).onKey(event) || super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public void onBlocked(Playlist p) {
+        bedtimeOverlay.setVisibility(View.VISIBLE);
+        main.removeCallbacks(hideBedtime);
+        main.postDelayed(hideBedtime, 3_000);
+    }
+
+    private final Runnable hideBedtime = () -> bedtimeOverlay.setVisibility(View.GONE);
+
+    private View buildBedtimeOverlay() {
+        LinearLayout o = new LinearLayout(this);
+        o.setOrientation(LinearLayout.VERTICAL);
+        o.setGravity(Gravity.CENTER);
+        o.setBackgroundColor(0xF0101828);
+        ImageView moon = new ImageView(this);
+        moon.setImageResource(R.drawable.ic_moon);
+        moon.setColorFilter(0xFFFFE082);
+        o.addView(moon, new LinearLayout.LayoutParams(200, 200));
+        TextView t = Ui.text(this, 36, Ui.TEXT);
+        t.setText(R.string.bedtime);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(0, 20, 0, 0);
+        o.addView(t);
+        o.setVisibility(View.GONE);
+        o.setOnClickListener(v -> hideBedtime.run());
+        return o;
     }
 
     @Override
@@ -253,6 +286,20 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(800, 400, Gravity.TOP);
         tlp.topMargin = 40;
         screen.addView(tiles, tlp);
+
+        // Admin: hold the top-left corner for 5 s (APP-SPEC section 7).
+        View corner = new View(this);
+        final Runnable openAdmin = this::askPinForAdmin;
+        corner.setOnTouchListener((v, e) -> {
+            if (e.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                main.postDelayed(openAdmin, 5_000);
+            } else if (e.getActionMasked() == MotionEvent.ACTION_UP
+                    || e.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                main.removeCallbacks(openAdmin);
+            }
+            return true;
+        });
+        screen.addView(corner, new FrameLayout.LayoutParams(90, 90, Gravity.TOP | Gravity.START));
 
         pageDots = new Ui.DotsView(this);
         screen.addView(pageDots, new FrameLayout.LayoutParams(
@@ -357,7 +404,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
 
             setOnClickListener(v -> {
                 PlayerService.play(HomeActivity.this, playlist.id);
-                showPlayerScreen();
+                if (player == null || !player.blockedNow(playlist)) showPlayerScreen();
             });
             refresh();
             Bitmap b = icons.cached(p);
@@ -379,6 +426,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
                 frame.setBackground(null);
             }
             badge.setVisibility(loaded && snap.playing ? View.VISIBLE : View.GONE);
+            setAlpha(player != null && player.blockedNow(playlist) ? 0.35f : 1f);
         }
     }
 
@@ -397,6 +445,27 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         FrameLayout.LayoutParams back_lp = new FrameLayout.LayoutParams(80, 80);
         back_lp.setMargins(40, 10, 0, 0);
         screen.addView(back, back_lp);
+
+        FrameLayout moonBox = new FrameLayout(this);
+        ImageButton moon = button(R.drawable.ic_moon, 72, 16, Ui.PANEL);
+        moon.setOnClickListener(v -> {
+            if (player != null) player.cycleSleepTimer();
+        });
+        moonBox.addView(moon, new FrameLayout.LayoutParams(72, 72));
+        sleepText = Ui.text(this, 16, 0xFF1E2A3A);
+        sleepText.setGravity(Gravity.CENTER);
+        GradientDrawable pillBg = new GradientDrawable();
+        pillBg.setColor(Ui.ACCENT);
+        pillBg.setCornerRadius(12);
+        sleepText.setBackground(pillBg);
+        sleepText.setPadding(6, 2, 6, 2);
+        moonBox.addView(sleepText, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM | Gravity.END));
+        // Above the cover's right edge, opposite the home button.
+        FrameLayout.LayoutParams mlp = new FrameLayout.LayoutParams(84, 84);
+        mlp.setMargins(296, 8, 0, 0);
+        screen.addView(moonBox, mlp);
 
         LinearLayout right = new LinearLayout(this);
         right.setOrientation(LinearLayout.VERTICAL);
@@ -534,12 +603,37 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
 
     private void showProgress(PlayerService.Snapshot s) {
         progress.set(s.durationMs > 0 ? (float) s.positionMs / s.durationMs : 0, 1);
+        long left = s.sleepEndsAt == 0 ? 0 : s.sleepEndsAt - System.currentTimeMillis();
+        if (left > 0) {
+            sleepText.setVisibility(View.VISIBLE);
+            sleepText.setText(String.valueOf((left + 59_999) / 60_000));
+        } else {
+            sleepText.setVisibility(View.GONE);
+        }
     }
 
     // --- volume (caps arrive with the admin settings in M3) ----------------
 
     private int volumeCap() {
-        return audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        return player != null ? player.volumeCapIndex() : audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    private void askPinForAdmin() {
+        Settings s = Settings.from(store.read(Store.SETTINGS_JSON));
+        if (!s.hasPin()) {
+            startActivity(new Intent(this, AdminActivity.class));
+            return;
+        }
+        PinPad[] pad = new PinPad[1];
+        pad[0] = new PinPad(this, "Parent PIN", pin -> {
+            if (s.checkPin(pin)) {
+                pad[0].dismiss();
+                startActivity(new Intent(this, AdminActivity.class));
+            } else {
+                pad[0].setPrompt("Wrong PIN, try again");
+            }
+        });
+        pad[0].show();
     }
 
     private void changeVolume(int delta) {

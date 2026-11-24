@@ -45,6 +45,10 @@ public class PlayerService extends Service {
     public static final String ACTION_PREV = "dev.audiobox.PREV";
     /** Before a shutdown: pause and write state.json synchronously. */
     public static final String ACTION_SAVE_AND_STOP = "dev.audiobox.SAVE_AND_STOP";
+    static final String ACTION_SLEEP_DONE = "dev.audiobox.SLEEP_DONE";
+    static final String ACTION_IDLE_CHECK = "dev.audiobox.IDLE_CHECK";
+    static final int[] SLEEP_STEPS = {0, 15, 30, 45};
+    private static final long FADE_MS = 10_000;
     public static final String EXTRA_ID = "id";
 
     private static final int NOTIFICATION_ID = 1;
@@ -59,6 +63,8 @@ public class PlayerService extends Service {
         public final boolean playing;
         public final long positionMs;
         public final long durationMs;
+        /** Wall-clock time the sleep timer ends, or 0 when it's off. */
+        public long sleepEndsAt;
 
         Snapshot(Playlist playlist, int track, boolean playing, long positionMs, long durationMs) {
             this.playlist = playlist;
@@ -78,6 +84,9 @@ public class PlayerService extends Service {
 
     public interface Listener {
         void onPlayerChanged(Snapshot s);
+
+        /** A playlist was refused because it's bedtime (APP-SPEC section 8). */
+        default void onBlocked(Playlist p) {}
     }
 
     public final class LocalBinder extends Binder {
@@ -93,6 +102,14 @@ public class PlayerService extends Service {
 
     private Store store;
     private ResumeBook book;
+    private Settings settings = new Settings();
+    private android.app.AlarmManager alarms;
+    private long sleepEndsAt; // wall clock, 0 = off
+    private int sleepChoice;  // minutes last chosen, for cycling
+    private long lastActivity = android.os.SystemClock.elapsedRealtime();
+    private boolean charging;
+    private boolean fading;
+    private float fadeVolume = 1f;
     private AudioManager audio;
     private MediaSession session;
 
@@ -113,6 +130,18 @@ public class PlayerService extends Service {
         }
     };
 
+    /** Settings changes, output changes and volume changes all re-apply the caps. */
+    private final android.content.BroadcastReceiver policy = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent i) {
+            if (HomeActivity.ACTION_RELOAD.equals(i.getAction())) {
+                loadSettings();
+                scheduleIdleCheck();
+            }
+            enforceVolumeCap();
+        }
+    };
+
     /** Low battery turns the ring yellow (APP-SPEC section 9). */
     private final android.content.BroadcastReceiver battery = new android.content.BroadcastReceiver() {
         @Override
@@ -121,6 +150,10 @@ public class PlayerService extends Service {
             int scale = i.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, 100);
             int plugged = i.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0);
             Lights.get().lowBattery(plugged == 0 && scale > 0 && level * 100 / scale < 15);
+            if ((plugged != 0) != charging) {
+                charging = plugged != 0;
+                userActivity(); // plugging in or out counts as activity
+            }
         }
     };
 
@@ -147,6 +180,8 @@ public class PlayerService extends Service {
         super.onCreate();
         store = new Store(new File(Environment.getExternalStorageDirectory(), "audiobox"));
         book = new ResumeBook(store.read(Store.STATE_JSON));
+        loadSettings();
+        alarms = (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
         audio = (AudioManager) getSystemService(AUDIO_SERVICE);
 
         session = new MediaSession(this, "audiobox");
@@ -175,6 +210,12 @@ public class PlayerService extends Service {
 
         startForeground(NOTIFICATION_ID, notification());
         registerReceiver(battery, new android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        android.content.IntentFilter pf = new android.content.IntentFilter(HomeActivity.ACTION_RELOAD);
+        pf.addAction("android.media.VOLUME_CHANGED_ACTION");
+        pf.addAction(Intent.ACTION_HEADSET_PLUG);
+        registerReceiver(policy, pf);
+        enforceVolumeCap();
+        scheduleIdleCheck();
         Log.i(TAG, "PlayerService up, last=" + book.last());
     }
 
@@ -192,6 +233,10 @@ public class PlayerService extends Service {
         } else if (ACTION_SAVE_AND_STOP.equals(action)) {
             pause();
             writeNow();
+        } else if (ACTION_SLEEP_DONE.equals(action)) {
+            sleepTimerDone();
+        } else if (ACTION_IDLE_CHECK.equals(action)) {
+            idleCheck();
         }
         return START_STICKY;
     }
@@ -207,6 +252,7 @@ public class PlayerService extends Service {
         releasePlayer();
         session.release();
         unregisterReceiver(battery);
+        unregisterReceiver(policy);
         audio.abandonAudioFocus(focus);
         disk.shutdown();
         super.onDestroy();
@@ -230,6 +276,11 @@ public class PlayerService extends Service {
             Log.w(TAG, "play: no playlist " + id);
             return;
         }
+        userActivity();
+        if (blockedNow(p)) {
+            blocked(p);
+            return;
+        }
         if (playlist != null && playlist.id.equals(p.id) && player != null) {
             if (!isPlaying()) start();
             return;
@@ -245,7 +296,12 @@ public class PlayerService extends Service {
 
     /** Play/pause with nothing loaded resumes the last playlist (APP-SPEC section 4). */
     public void resumeOrLast() {
+        userActivity();
         if (player != null) {
+            if (blockedNow(playlist)) {
+                blocked(playlist);
+                return;
+            }
             start();
             return;
         }
@@ -256,7 +312,10 @@ public class PlayerService extends Service {
 
     public void pause() {
         wantPlaying = false;
+        cancelSleepTimer();
+        userActivity();
         if (player != null && prepared && player.isPlaying()) player.pause();
+        if (fading) endFade(); // after pausing, so restoring the volume is silent
         saveSpot();
         main.removeCallbacks(periodicSave);
         changed();
@@ -290,7 +349,147 @@ public class PlayerService extends Service {
         if (playlist == null) return new Snapshot(null, 0, false, 0, 0);
         long position = prepared ? player.getCurrentPosition() : 0;
         long duration = prepared ? player.getDuration() : 0;
-        return new Snapshot(playlist, order.get(pos), isPlaying() || wantPlaying, position, duration);
+        Snapshot s = new Snapshot(playlist, order.get(pos), isPlaying() || wantPlaying, position, duration);
+        s.sleepEndsAt = sleepEndsAt;
+        return s;
+    }
+
+    // --- parental controls (APP-SPEC section 8) ----------------------------
+
+    public Settings settings() {
+        return settings;
+    }
+
+    /** The UI calls this on touches, so the idle auto-off counts from the last one. */
+    public void userActivity() {
+        lastActivity = android.os.SystemClock.elapsedRealtime();
+        scheduleIdleCheck();
+    }
+
+    public boolean bedtimeNow() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        return settings.isBedtime(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE));
+    }
+
+    public boolean blockedNow(Playlist p) {
+        return p != null && !p.bedtime && bedtimeNow();
+    }
+
+    /** Moon button: off -> 15 -> 30 -> 45 -> off. */
+    public void cycleSleepTimer() {
+        userActivity();
+        int current = sleepEndsAt == 0 ? 0 : sleepChoice;
+        int next = 0;
+        for (int i = 0; i < SLEEP_STEPS.length; i++) {
+            if (SLEEP_STEPS[i] == current) next = SLEEP_STEPS[(i + 1) % SLEEP_STEPS.length];
+        }
+        if (next == 0) cancelSleepTimer();
+        else setSleepTimer(next);
+        changed();
+    }
+
+    private void setSleepTimer(int minutes) {
+        sleepEndsAt = System.currentTimeMillis() + minutes * 60_000L;
+        sleepChoice = minutes;
+        alarms.setExact(android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                android.os.SystemClock.elapsedRealtime() + minutes * 60_000L, alarmIntent(ACTION_SLEEP_DONE));
+        Log.i(TAG, "sleep timer " + minutes + " min");
+    }
+
+    private void cancelSleepTimer() {
+        if (sleepEndsAt == 0) return;
+        sleepEndsAt = 0;
+        alarms.cancel(alarmIntent(ACTION_SLEEP_DONE));
+    }
+
+    /**
+     * Fade out over 10 s, then pause. The fade follows whatever track is current
+     * (a new track opened mid-fade starts at the faded volume, see openTrack).
+     */
+    private void sleepTimerDone() {
+        sleepEndsAt = 0;
+        if (!isPlaying() || fading) return;
+        Log.i(TAG, "sleep timer done, fading out");
+        fading = true;
+        final int steps = 20;
+        for (int i = 1; i <= steps; i++) {
+            final float v = 1f - (float) i / steps;
+            final boolean last = i == steps;
+            main.postDelayed(() -> {
+                if (!fading) return; // cancelled (e.g. paused by hand)
+                fadeVolume = v;
+                if (player != null) player.setVolume(v, v);
+                if (last) pause();
+            }, FADE_MS * i / steps);
+        }
+    }
+
+    private void endFade() {
+        fading = false;
+        fadeVolume = 1f;
+        if (player != null) player.setVolume(1f, 1f);
+    }
+
+    private void scheduleIdleCheck() {
+        if (alarms == null) return;
+        PendingIntent pi = alarmIntent(ACTION_IDLE_CHECK);
+        alarms.cancel(pi);
+        if (settings.idleOffMinutes <= 0) return;
+        alarms.set(android.app.AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                lastActivity + settings.idleOffMinutes * 60_000L, pi);
+    }
+
+    private void idleCheck() {
+        long idleFor = android.os.SystemClock.elapsedRealtime() - lastActivity;
+        long limit = settings.idleOffMinutes * 60_000L;
+        if (settings.idleOffMinutes <= 0) return;
+        if (isPlaying() || wantPlaying || idleFor < limit - 1_000) {
+            if (isPlaying()) lastActivity = android.os.SystemClock.elapsedRealtime();
+            scheduleIdleCheck();
+            return;
+        }
+        if (charging && !settings.idleOffWhileCharging) {
+            Log.i(TAG, "idle but charging: staying on");
+            lastActivity = android.os.SystemClock.elapsedRealtime();
+            scheduleIdleCheck();
+            return;
+        }
+        Log.i(TAG, "idle for " + idleFor / 60_000 + " min: powering off");
+        pause();
+        writeNow();
+        Power.shutdown(this);
+    }
+
+    private PendingIntent alarmIntent(String action) {
+        return PendingIntent.getService(this, action.hashCode(),
+                new Intent(this, PlayerService.class).setAction(action), PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void loadSettings() {
+        settings = Settings.from(store.read(Store.SETTINGS_JSON));
+    }
+
+    /** Highest volume index allowed on the current output. */
+    public int volumeCapIndex() {
+        int max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        @SuppressWarnings("deprecation") boolean hp = audio.isWiredHeadsetOn();
+        return settings.capIndex(max, hp);
+    }
+
+    private void enforceVolumeCap() {
+        int cap = volumeCapIndex();
+        int v = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+        if (v > cap) {
+            Log.i(TAG, "volume " + v + " above cap " + cap + ", lowering");
+            audio.setStreamVolume(AudioManager.STREAM_MUSIC, cap, 0);
+        }
+    }
+
+    private void blocked(Playlist p) {
+        Log.i(TAG, "bedtime: " + p.id + " not allowed now");
+        Lights.get().errorFlash();
+        Screen.wake(this);
+        for (Listener l : listeners) l.onBlocked(p);
     }
 
     // --- internals ---------------------------------------------------------
@@ -327,6 +526,7 @@ public class PlayerService extends Service {
         prepared = false;
         mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mp.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK); // held only while playing
+        mp.setVolume(fadeVolume, fadeVolume);
         mp.setOnPreparedListener(m -> {
             if (m != player) return;
             prepared = true;
@@ -363,6 +563,11 @@ public class PlayerService extends Service {
         int r = audio.requestAudioFocus(focus, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         if (r != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) Log.w(TAG, "audio focus not granted");
         player.start();
+        if (sleepEndsAt == 0) {
+            int m = settings.sleepMinutesFor(bedtimeNow());
+            if (m > 0) setSleepTimer(m);
+        }
+        userActivity();
         main.removeCallbacks(periodicSave);
         main.postDelayed(periodicSave, SAVE_EVERY_MS);
         changed();
