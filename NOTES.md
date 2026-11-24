@@ -614,3 +614,14 @@ Findings:
   clock set with `tools/audiobox time`; RTC agrees. Bedtime now follows
   Tallinn time. The clock had been ~1 h fast after a visit to Android's
   Date & time screen.
+- Font switched to Nunito (2026-11-24): Fredoka has no Cyrillic (subsets
+  latin, latin-ext, hebrew), so Cyrillic labels fell back to the thinner
+  system font. Nunito (google/fonts `ofl/nunito`, OFL, no Reserved Font
+  Name; subsets incl. cyrillic and cyrillic-ext) cut to a static
+  ExtraBold (wght 800) to keep the chunky look; 132 KB, shipped as
+  `assets/fonts/nunito.ttf` with its `OFL.txt`. Checked on the box with
+  the label "Ёжик Їжак" on the grid, the letter tile and the player.
+- Known gap: renaming the playlist that's currently loaded doesn't update
+  the player screen's title until it's loaded again (the grid updates).
+- `tools/audiobox set ID label=` (empty) now removes the label, so the app
+  falls back to the folder name.

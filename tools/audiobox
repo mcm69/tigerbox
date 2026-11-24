@@ -305,7 +305,7 @@ def parse_value(key, raw):
             return None
         return int(raw)
     if key == "label":
-        return raw
+        return raw or None  # empty: back to the name from the folder
     raise Fail(f"unknown key {key!r} (label, order, {', '.join(sorted(BOOL_KEYS))})")
 
 

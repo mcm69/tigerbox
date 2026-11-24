@@ -21,16 +21,17 @@ final class Ui {
     private Ui() {}
 
     /**
-     * The playful font (APP-SPEC section 7): Fredoka SemiBold (OFL, see
-     * assets/fonts/OFL.txt), a static instance of the Google Fonts variable font
-     * since API 22 can't pick a weight from a variable font. Glyphs it lacks
+     * The playful font (APP-SPEC section 7): Nunito ExtraBold (OFL, see
+     * assets/fonts/OFL.txt; covers Latin and Cyrillic), a static instance of the
+     * Google Fonts variable font since API 22 can't pick a weight from a
+     * variable font. Glyphs it lacks
      * (the PIN pad's arrow and cross, the dots) come from the system fallback.
      * Falls back to the system's bold sans-serif if the asset can't be read.
      */
     static synchronized Typeface font(Context c) {
         if (font == null) {
             try {
-                font = Typeface.createFromAsset(c.getAssets(), "fonts/fredoka.ttf");
+                font = Typeface.createFromAsset(c.getAssets(), "fonts/nunito.ttf");
             } catch (RuntimeException e) {
                 font = Typeface.create("sans-serif", Typeface.BOLD);
             }

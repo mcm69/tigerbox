@@ -145,8 +145,9 @@ app's `/sdcard/tigerbox` logs folder is left alone.
 **Kid UI (`HomeActivity`), 800 × 480:**
 
 - *Look:* English UI text **(decided)** in a playful rounded font bundled with the app:
-  [Fredoka](https://fonts.google.com/specimen/Fredoka) (SIL OFL; licence file shipped
-  alongside). Text is minimal; icons carry the meaning.
+  [Nunito](https://fonts.google.com/specimen/Nunito) ExtraBold (SIL OFL; licence file
+  shipped alongside). It covers Latin and Cyrillic, so playlist labels can be in either
+  (Fredoka, the first pick, has no Cyrillic). Text is minimal; icons carry the meaning.
 - *Grid (home):* a 4 × 2 grid of icons, each about 170 × 170 with its short label below
   **(decided: icons with labels)**. With more
   than 8 playlists it scrolls sideways a page at a time, with page dots. The playlist that's
@@ -278,7 +279,7 @@ against, but the 7-byte frame must be confirmed before shipping.
 
 1. **Name:** `audiobox`: data folder `/sdcard/audiobox/`, Mac tool `tools/audiobox`, package
    `dev.audiobox`.
-2. **Labels and language:** icons with a short label; English; playful font (Fredoka).
+2. **Labels and language:** icons with a short label; English; playful font (Fredoka, replaced by Nunito on 2026-11-24 for Cyrillic labels).
 3. **End of a playlist:** stop and rewind to track 1.
 4. **Idle auto-off while charging:** never by default; admin setting to turn it on.
 5. **Defaults:** volume caps 100 % (speaker and headphones), idle auto-off 15 min, sleep timer
