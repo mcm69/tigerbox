@@ -602,3 +602,10 @@ Findings:
   `assets/fonts/fredoka.ttf` with `OFL.txt` next to it. Letter tiles use it
   too. Glyphs it lacks (← ✕ ● ○) fall back to the system font, checked on
   the box. A cold power-on from off also booted cleanly into audiobox.
+- Way back from Android settings (2026-11-24): the box has no navigation
+  bar (the window exists but is hidden) and the big button is play/pause,
+  so nothing on the device leads home. `PlayerService` now brings
+  `HomeActivity` to the front on `SCREEN_OFF`; tested Settings -> screen
+  off -> grid. From the Mac: `adb shell input keyevent 3`. (`dumpsys
+  activity`'s `mFocusedActivity` line can lag; `mResumedActivity` and
+  `mFocusedStack` are the ones to trust.)

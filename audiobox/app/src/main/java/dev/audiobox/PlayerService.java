@@ -142,6 +142,24 @@ public class PlayerService extends Service {
         }
     };
 
+    /**
+     * When the screen goes off, bring the home screen back to the front. The box
+     * has no navigation bar and the big button is play/pause, so this is the way
+     * out of Android settings (opened from the admin screen) or any other app.
+     * HomeActivity clears its task on launch, so an open admin screen closes too
+     * and the PIN is asked again next time.
+     */
+    private final android.content.BroadcastReceiver screenOff = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent i) {
+            Log.i(TAG, "screen off: back to home");
+            startActivity(new Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_HOME)
+                    .setComponent(new ComponentName(c, HomeActivity.class))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        }
+    };
+
     /** Low battery turns the ring yellow (APP-SPEC section 9). */
     private final android.content.BroadcastReceiver battery = new android.content.BroadcastReceiver() {
         @Override
@@ -214,6 +232,7 @@ public class PlayerService extends Service {
         pf.addAction("android.media.VOLUME_CHANGED_ACTION");
         pf.addAction(Intent.ACTION_HEADSET_PLUG);
         registerReceiver(policy, pf);
+        registerReceiver(screenOff, new android.content.IntentFilter(Intent.ACTION_SCREEN_OFF));
         enforceVolumeCap();
         scheduleIdleCheck();
         Log.i(TAG, "PlayerService up, last=" + book.last());
@@ -253,6 +272,7 @@ public class PlayerService extends Service {
         session.release();
         unregisterReceiver(battery);
         unregisterReceiver(policy);
+        unregisterReceiver(screenOff);
         audio.abandonAudioFocus(focus);
         disk.shutdown();
         super.onDestroy();

@@ -176,7 +176,9 @@ app's `/sdcard/tigerbox` logs folder is left alone.
   - *Bedtime*: on/off, start and end time. Which playlists are allowed is set per playlist.
   - *Clock*: shows the current time, with a set button (`SET_TIME`). The Mac tool also syncs
     it.
-  - *System*: battery, free space, app version, "exit to Android settings" (for maintenance).
+  - *System*: battery, free space, app version, "exit to Android settings" (for maintenance). There is no navigation bar, so the way
+    back is to let the screen turn off: the app then brings the home screen to the front
+    (and an open admin screen closes, so the PIN is asked again).
 
 ## 8. Parental controls (decided: all four)
 
