@@ -462,3 +462,17 @@ cmdline were 4 MB too low. Real starts come from
 Full read-only survey in **SURVEY.md**: memory and what to disable, music
 storage, the card-reader protocol, buttons, LEDs, screen, and the update
 path. Raw evidence in survey/raw/.
+
+## App build: M0 done (2026-11-24)
+
+The app lives in `audiobox/` (spec: APP-SPEC.md). Plain Java, no AndroidX or
+Kotlin runtime, AGP 9.5.2 + Gradle 9.9.2 wrapper, compileSdk 36 with the
+installed build-tools 36.1.0, min/target API 22. Build and test with
+`JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew testDebugUnitTest assembleDebug`.
+
+M0 verified on the box: installed as a user app (`adb install -r`), it scans
+`/sdcard/audiobox/library/`, merges `library.json` (label, order, hidden)
+and shows the grid with icon.png, or a letter tile as the fallback. The
+`dev.audiobox.RELOAD` broadcast rescans. 8.9 MB PSS. Sample playlists made
+from `say` speech (no copyrighted audio) are on the box: animals, bedtime,
+counting (12 tracks, natural order), secret (hidden).
