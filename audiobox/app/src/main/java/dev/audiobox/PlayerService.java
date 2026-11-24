@@ -137,6 +137,7 @@ public class PlayerService extends Service {
             if (HomeActivity.ACTION_RELOAD.equals(i.getAction())) {
                 loadSettings();
                 scheduleIdleCheck();
+                refreshLoaded();
             }
             enforceVolumeCap();
         }
@@ -520,6 +521,20 @@ public class PlayerService extends Service {
             if (p.id.equals(id)) return p;
         }
         return null;
+    }
+
+    /**
+     * After a RELOAD, pick up a changed label, icon or flags of the loaded
+     * playlist so the player screen shows them. Only when its tracks are the
+     * same: the play order and position index into them. Changed tracks are
+     * picked up the next time the playlist is loaded.
+     */
+    private void refreshLoaded() {
+        if (playlist == null) return;
+        Playlist fresh = find(playlist.id);
+        if (fresh == null || !fresh.tracks.equals(playlist.tracks)) return;
+        playlist = fresh;
+        changed();
     }
 
     private void load(Playlist p, boolean autoplay) {
