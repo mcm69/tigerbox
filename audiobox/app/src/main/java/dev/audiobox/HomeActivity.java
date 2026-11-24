@@ -74,6 +74,11 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private View playerScreen;
     private ImageView cover;
     private TextView title, trackText;
+    /** Song title under the playlist label; scrolls (marquee) while playing. */
+    private TextView song;
+    private String songFor; // path of the track whose title is shown
+    private boolean songScrolling;
+    private final android.util.LruCache<String, String> songTitles = new android.util.LruCache<>(64);
     private Ui.DotsView trackDots;
     private Ui.BarView progress, volumeBar;
     private ImageButton playPause;
@@ -491,15 +496,26 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         rlp.setMargins(405, 10, 0, 0);
         screen.addView(right, rlp);
 
-        title = Ui.text(this, 32, Ui.TEXT);
+        // Playlist label (one line: labels are short) and the song title below
+        // it; together they take the space the two-line label used to.
+        title = Ui.text(this, 30, Ui.TEXT);
         title.setGravity(Gravity.CENTER);
-        title.setMaxLines(2);
+        title.setSingleLine(true);
         title.setEllipsize(TextUtils.TruncateAt.END);
         LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 90);
-        tlp.topMargin = 20;
-        title.setGravity(Gravity.CENTER);
+                ViewGroup.LayoutParams.MATCH_PARENT, 48);
+        tlp.topMargin = 18;
         right.addView(title, tlp);
+
+        song = Ui.text(this, 22, Ui.TEXT_DIM);
+        song.setGravity(Gravity.CENTER);
+        song.setSingleLine(true);
+        song.setEllipsize(TextUtils.TruncateAt.END);
+        song.setMarqueeRepeatLimit(-1); // forever, while playing
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 44);
+        slp.setMargins(12, 0, 12, 0);
+        right.addView(song, slp);
 
         trackDots = new Ui.DotsView(this);
         right.addView(trackDots, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 24));
@@ -594,6 +610,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
             return;
         }
         title.setText(s.playlist.label);
+        showSong(s);
         int n = s.playlist.tracks.size();
         if (n <= 12) {
             trackDots.setVisibility(View.VISIBLE);
@@ -615,6 +632,36 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
                     if (snap.playlist != null && snap.playlist.id.equals(p.id)) cover.setImageBitmap(loaded);
                 });
             });
+        }
+    }
+
+    /**
+     * The current song's title: from the cache, else the cleaned-up filename at
+     * once and the tag title when it has been read. Long titles scroll while
+     * playing and end in "…" when paused.
+     */
+    private void showSong(PlayerService.Snapshot s) {
+        java.io.File f = s.playlist.tracks.get(s.track);
+        String path = f.getPath();
+        if (!path.equals(songFor)) {
+            songFor = path;
+            String known = songTitles.get(path);
+            song.setText(known != null ? known : TrackTitle.fromFilename(f.getName()));
+            if (known == null) {
+                io.execute(() -> {
+                    String t = TrackTitle.read(f);
+                    main.post(() -> {
+                        songTitles.put(path, t);
+                        if (path.equals(songFor) && !t.contentEquals(song.getText())) song.setText(t);
+                    });
+                });
+            }
+        }
+        if (s.playing != songScrolling) {
+            songScrolling = s.playing;
+            song.setEllipsize(s.playing ? TextUtils.TruncateAt.MARQUEE : TextUtils.TruncateAt.END);
+            song.setHorizontalFadingEdgeEnabled(s.playing); // soft edges while scrolling
+            song.setSelected(s.playing); // a marquee only runs while selected
         }
     }
 

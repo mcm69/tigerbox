@@ -153,8 +153,10 @@ app's `/sdcard/tigerbox` logs folder is left alone.
   than 8 playlists it scrolls sideways a page at a time, with page dots. The playlist that's
   currently loaded has a highlight ring and a small "playing" badge. A 24-hour clock sits
   top left and a battery indicator top right. There is no other chrome.
-- *Player:* the large icon (≈ 360 × 360) on the left. On the right: the label, the track
-  position (dots for small playlists, "3 / 12" otherwise), big ⏮ ⏯ ⏭, a volume control (two
+- *Player:* the large icon (≈ 360 × 360) on the left. On the right: the label (one line), the song
+  title (its title tag, else the filename without a leading track number; scrolls while
+  playing when too long, ends in "…" when paused; tags are expected to be in a proper
+  encoding when loaded), the track position (dots up to 12 tracks, "3 / 14" above that), big ⏮ ⏯ ⏭, a volume control (two
   big −/+ with a bar up to the cap), the sleep timer moon (section 8), and a large "back to
   grid" button. Swiping right also goes back.
 - *Bedtime:* an illustration shown for a few seconds when a playlist isn't allowed.

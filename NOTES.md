@@ -627,3 +627,11 @@ Findings:
   interrupted). Changed tracks still apply on the next load.
 - `tools/audiobox set ID label=` (empty) now removes the label, so the app
   falls back to the folder name.
+- Song title on the player screen (2026-11-24): `TrackTitle` reads the
+  ID3/MP4 title via MediaMetadataRetriever off the UI thread (cached), else
+  cleans up the filename ("07 - Old MacDonald.mp3" -> "Old MacDonald").
+  Marquee while playing, "…" when paused. Checked on the box with
+  generated silent MP3s with UTF-16 ID3v2.3 titles, incl. Cyrillic and an
+  85-character title, and an untagged file; test playlist removed after.
+  Note: `input keyevent 127` (MEDIA_PAUSE) isn't handled by the app, only
+  85 (PLAY_PAUSE), so tests should tap the button instead.
