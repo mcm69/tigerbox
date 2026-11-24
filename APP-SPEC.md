@@ -237,6 +237,8 @@ of use.
 
 ## 12. Milestones
 
+**Progress (2026-11-24):** M0–M4 done and verified on the box (see NOTES.md); M5 not started.
+
 | | Scope | Done when |
 |---|---|---|
 | M0 | Gradle project, user-app install, `Library` scan + `library.json` | The app lists the pushed folders with their icons |
