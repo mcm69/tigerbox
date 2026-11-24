@@ -104,6 +104,12 @@ public class AdminActivity extends Activity {
             saveSettings();
         }));
 
+        heading("Lights");
+        content.addView(toggleRow("Blue light under the box while playing", settings.bottomLight, () -> {
+            settings.bottomLight = !settings.bottomLight;
+            saveSettings();
+        }));
+
         heading("Bedtime");
         content.addView(toggleRow("Only bedtime playlists between", settings.bedtimeEnabled, () -> {
             settings.bedtimeEnabled = !settings.bedtimeEnabled;

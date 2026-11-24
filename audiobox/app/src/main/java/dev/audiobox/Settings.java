@@ -22,6 +22,8 @@ public final class Settings {
     public int idleOffMinutes = 15;
     public boolean idleOffWhileCharging = false;
     public boolean bedtimeEnabled = false;
+    /** The blue light under the box breathes while playing (APP-SPEC section 9). */
+    public boolean bottomLight = true;
     /** Minutes after midnight. */
     public int bedtimeStart = 19 * 60;
     public int bedtimeEnd = 7 * 60;
@@ -38,6 +40,7 @@ public final class Settings {
         s.sleepDefaultMinutes = Math.max(0, j.optInt("sleepDefaultMinutes", s.sleepDefaultMinutes));
         s.idleOffMinutes = Math.max(0, j.optInt("idleOffMinutes", s.idleOffMinutes));
         s.idleOffWhileCharging = j.optBoolean("idleOffWhileCharging", s.idleOffWhileCharging);
+        s.bottomLight = j.optBoolean("bottomLight", s.bottomLight);
         JSONObject b = j.optJSONObject("bedtime");
         if (b != null) {
             s.bedtimeEnabled = b.optBoolean("enabled", false);
@@ -61,6 +64,7 @@ public final class Settings {
             j.put("sleepDefaultMinutes", sleepDefaultMinutes);
             j.put("idleOffMinutes", idleOffMinutes);
             j.put("idleOffWhileCharging", idleOffWhileCharging);
+            j.put("bottomLight", bottomLight);
             JSONObject b = new JSONObject();
             b.put("enabled", bedtimeEnabled);
             b.put("start", formatTime(bedtimeStart));

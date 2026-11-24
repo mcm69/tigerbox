@@ -593,8 +593,7 @@ Findings:
   (an over-current safeguard broadcast from the board's service). Its
   receiver is now off; audiobox should take over that broadcast later
   (unknown what the stock app did with it).
-- Still to do: a day of use with no LMK kills (spec's "done when"); the
-  optional `install-recovery.sh` for `/dev/i2c-2` (bottom light).
+- Still to do: a day of use with no LMK kills (spec's "done when").
 - Font added (OK given 2026-11-24): `Fredoka[wdth,wght].ttf` + `OFL.txt`
   from google/fonts `ofl/fredoka` (no Reserved Font Name), cut to a static
   SemiBold (wght 600, wdth 100) with fontTools' instancer because API 22
@@ -635,3 +634,20 @@ Findings:
   85-character title, and an untagged file; test playlist removed after.
   Note: `input keyevent 127` (MEDIA_PAUSE) isn't handled by the app, only
   85 (PLAY_PAUSE), so tests should tap the button instead.
+- Removing the loaded playlist now unloads it: the player stops, forgets it
+  as the one to resume, and the screen returns to the grid.
+- Lights rework (2026-11-24):
+  - Pausing left the ring dark instead of steady: after `breathled_switch`
+    0 the driver switches the ring off a moment later, over a colour written
+    right away. Writing `modem_status` again 1 s later works (tested live);
+    the app now does that.
+  - Low battery is yellow in place of green: steady, or breathing (`7`)
+    while playing.
+  - The bottom blue light was the kernel driver's sound-reactive mode
+    (`led_debug` reads `1` after boot; nothing of ours set it). The app now
+    writes `led_debug` 0 and runs `/system/bin/sn3199w` (from
+    tools/sn3199): slow breathing while playing, chip reset (dark)
+    otherwise. Admin switch "Blue light under the box while playing", on
+    by default. `tools/audiobox install` pushes the helper and appends
+    `chmod 0666 /dev/i2c-2` to the vendor `/system/bin/install-recovery.sh`
+    (runs as root via `flash_recovery` at boot; checked: 0666 after reboot).

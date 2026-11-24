@@ -209,11 +209,16 @@ app's `/sdcard/tigerbox` logs folder is left alone.
 | Playing | green breathing (`1`) | on |
 | Paused | green steady | dim |
 | Error / not allowed | red flicker (`000011`) 3 s | unchanged |
-| Low battery (< 15 %) | yellow steady | unchanged |
+| Low battery (< 15 %, not charging) | yellow instead of green: steady, or breathing (`7`) while playing | unchanged |
 | Powering off (button held) | red steady | off |
 
-The bottom blue light (SN3199) becomes a slow hardware "breathing" while playing, but only
-after M5 gives the app access to `/dev/i2c-2`.
+The bottom blue light (SN3199) breathes slowly while playing and is off otherwise. A
+switch in the admin screen (Lights) turns it off for good; it is on by default. At boot
+the kernel driver puts the chip into a sound-reactive mode (`led_debug` = 1); the app
+switches that off and drives the chip through `/system/bin/sn3199w`.
+`tools/audiobox install` pushes that helper and appends `chmod 0666 /dev/i2c-2` to
+`/system/bin/install-recovery.sh`, which init runs as root at every boot (SELinux is
+permissive). Without that access the light just stays off.
 
 ## 10. Mac tool: `tools/audiobox`
 
@@ -254,7 +259,7 @@ of use.
 | M2 | Kid UI (grid + player), big button (keymap installed), lights | Screen-off button press verified; hold-3 s power-off works |
 | M3 | Admin screen + parental controls + clock | All four controls work; PIN lock |
 | M4 | `tools/audiobox` | Push with icon and label, set, time sync |
-| M5 | HOME + `/system/priv-app` + disable the stock apps. Optional: `/system/bin/install-recovery.sh` to `chmod 0666 /dev/i2c-2` at boot for the bottom light (it runs as root through the existing `flash_recovery` service) | Clean boot straight into the app; a day with no LMK kills |
+| M5 | HOME + `/system/priv-app` + disable the stock apps. Done since: `/system/bin/install-recovery.sh` does `chmod 0666 /dev/i2c-2` at boot for the bottom light (it runs as root through the existing `flash_recovery` service; see section 9) | Clean boot straight into the app; a day with no LMK kills |
 
 ## 13. Phase 2: cards (later)
 

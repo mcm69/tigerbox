@@ -400,8 +400,32 @@ def cmd_install(a):
     sh("mkdir -p /system/priv-app/audiobox && chmod 755 /system/priv-app/audiobox")
     adb("push", apk, "/system/priv-app/audiobox/audiobox.apk")
     sh("chmod 644 /system/priv-app/audiobox/audiobox.apk && sync")
+    install_bottom_light()
     print("installed to /system/priv-app/audiobox; rebooting")
     adb("reboot")
+
+
+SN3199W = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sn3199", "sn3199w")
+# Appended to the vendor's install-recovery.sh, which init runs as root at every
+# boot (the flash_recovery service). The app's bottom-light helper needs the bus.
+I2C_HOOK = "chmod 0666 /dev/i2c-2  # audiobox: bottom light (SN3199)"
+
+
+def install_bottom_light():
+    """The SN3199 helper in /system/bin and the boot hook that opens /dev/i2c-2."""
+    if not os.path.isfile(SN3199W):
+        print("building tools/sn3199/sn3199w")
+        subprocess.run([os.path.join(os.path.dirname(SN3199W), "build.sh")], check=True,
+                       stdout=subprocess.DEVNULL)
+    adb("push", SN3199W, "/system/bin/sn3199w")
+    sh("chown root:shell /system/bin/sn3199w && chmod 755 /system/bin/sn3199w")
+    hook = "/system/bin/install-recovery.sh"
+    if "audiobox" not in sh(f"cat {hook} 2>/dev/null || true"):
+        if "#!" not in sh(f"head -1 {hook} 2>/dev/null || true"):
+            sh(f"echo '#!/system/bin/sh' > {hook}")
+        sh(f"echo '{I2C_HOOK}' >> {hook} && chmod 750 {hook}")
+        print("boot hook added to install-recovery.sh (bottom light)")
+    sh("chmod 0666 /dev/i2c-2 && sync")
 
 
 def cmd_lockdown(a):

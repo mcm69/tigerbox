@@ -488,6 +488,7 @@ public class PlayerService extends Service {
 
     private void loadSettings() {
         settings = Settings.from(store.read(Store.SETTINGS_JSON));
+        Lights.get().bottomLight(settings.bottomLight);
     }
 
     /** Highest volume index allowed on the current output. */
