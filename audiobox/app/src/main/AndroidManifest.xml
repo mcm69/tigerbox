@@ -4,6 +4,9 @@
     <!-- API 22: granted at install time. The library lives on /sdcard/audiobox. -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Only granted once installed in /system/priv-app (milestone M5). -->
+    <uses-permission android:name="android.permission.SHUTDOWN" />
 
     <application
         android:allowBackup="false"
@@ -22,5 +25,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".PlayerService"
+            android:exported="false" />
+
+        <receiver
+            android:name=".MediaButtonReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

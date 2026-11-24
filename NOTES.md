@@ -476,3 +476,24 @@ and shows the grid with icon.png, or a letter tile as the fallback. The
 `dev.audiobox.RELOAD` broadcast rescans. 8.9 MB PSS. Sample playlists made
 from `say` speech (no copyrighted audio) are on the box: animals, bedtime,
 counting (12 tracks, natural order), secret (hidden).
+
+## M1 done (2026-11-24): playback, resume, button path
+
+- `PlayerService` (foreground, always running) plays playlists with
+  `MediaPlayer` (Rockchip's RockFFPlayer underneath), holds audio focus, and
+  keeps a `MediaSession` active even when idle so the button always has a
+  target. Resume per playlist in `state.json` (by file name + index),
+  rewinds at the end of a playlist. Verified: plays through, survives
+  `am force-stop` and resumes at the same track.
+- **Keymap installed for good** (`/system/usr/keylayout/rk816_pwrkey.kl`,
+  `key 116 MEDIA_PLAY_PAUSE`). Until the app is in /system/priv-app (M5) the
+  ~3 s hold can't shut down (SHUTDOWN permission refused, logged); the PMIC
+  6-8 s hold and `adb shell reboot -p` still work.
+- **Testing the button without a finger:** `input keyevent 85` does NOT
+  follow the real path (injected keys reach the window even with the screen
+  off). Raw kernel events do:
+  `sendevent /dev/input/event1 1 116 1; sendevent /dev/input/event1 0 0 0`
+  then the same with `0` for release. Verified with the screen off: the
+  press arrives at the MediaSession, the app wakes the screen, the release
+  arrives at the activity, and the shared handler times it (short press =
+  toggle, 3.5 s = power-off path).

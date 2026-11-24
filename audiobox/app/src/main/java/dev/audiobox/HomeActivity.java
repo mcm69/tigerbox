@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -22,7 +23,6 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,8 +80,7 @@ public class HomeActivity extends Activity {
         adapter = new TileAdapter();
         grid.setAdapter(adapter);
         grid.setOnItemClickListener((parent, view, position, id) -> {
-            Playlist p = playlists.get(position);
-            Toast.makeText(this, p.label + ": " + p.tracks.size() + " tracks", Toast.LENGTH_SHORT).show();
+            PlayerService.play(this, playlists.get(position).id);
         });
         root.addView(grid);
 
@@ -96,6 +95,19 @@ public class HomeActivity extends Activity {
 
         setContentView(root);
         registerReceiver(reload, new IntentFilter(ACTION_RELOAD));
+        PlayerService.send(this, PlayerService.ACTION_START);
+    }
+
+    // With the screen on the big button reaches the focused window, not the
+    // MediaSession (APP-SPEC section 4).
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return ButtonHandler.get(this).onKey(event) || super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        return ButtonHandler.get(this).onKey(event) || super.onKeyUp(keyCode, event);
     }
 
     @Override
