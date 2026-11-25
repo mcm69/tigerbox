@@ -180,8 +180,10 @@ def station_entry(radio, sid):
 
 
 def resolve_stream(url):
-    """Follows redirects and unwraps .pls / plain .m3u playlists to the stream URL.
-    Returns (stream_url, content_type). HLS (.m3u8) is a stream itself: kept."""
+    """Unwraps .pls / plain .m3u playlists to the stream URL. Returns (stream_url,
+    content_type). HLS (.m3u8) is a stream itself: kept. A redirect to the stream is
+    followed for the check but not saved: it often points at one load-balanced server
+    node, and the player follows redirects itself."""
     for _ in range(3):  # a playlist may point at another playlist
         req = urllib.request.Request(url, headers={"User-Agent": "audiobox", "Icy-MetaData": "0"})
         try:
@@ -193,12 +195,12 @@ def resolve_stream(url):
                 is_m3u = (path.endswith(".m3u") or ctype in ("audio/x-mpegurl", "audio/mpegurl")) \
                     and not path.endswith(".m3u8")
                 if not (is_pls or is_m3u):
-                    return final, ctype
+                    return url, ctype
                 text = r.read(65536).decode("utf-8", "replace")
         except OSError as e:
             raise Fail(f"can't fetch {url}: {e}")
         if "#EXT-X-" in text:  # HLS served as .m3u / audio/x-mpegurl
-            return final, "application/vnd.apple.mpegurl"
+            return url, "application/vnd.apple.mpegurl"
         target = None
         for line in text.splitlines():
             line = line.strip()

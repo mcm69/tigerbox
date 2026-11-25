@@ -70,8 +70,9 @@ A station is an entry in `radio.json` plus an optional logo:
     "vikerraadio": { "label": "Vikerraadio", "url": "https://…", "order": 2, "hidden": true } } }
 ```
 
-- `url` is the resolved stream URL (the tool resolves `.pls`/`.m3u` wrappers and redirects
-  when adding).
+- `url` is the stream URL (the tool unwraps `.pls`/`.m3u` wrappers when adding). Redirects
+  are not saved: they often point at one load-balanced server node, and ExoPlayer follows
+  them itself.
 - `label`, `order`, `hidden` and `bedtime` work as for playlists (section 5.2). There is no
   `resume` or `shuffle`: radio is always live.
 - Same concurrency rules as `library.json` (section 6): pull, edit, push, `RELOAD`.
@@ -142,7 +143,7 @@ audiobox radio check [id]              # test-play one or all stations on the bo
 audiobox keyboard on|off               # on-screen keyboard, for joining Wi-Fi
 ```
 
-- `radio add` resolves `.pls`/`.m3u` wrappers and redirects on the Mac and reads the content
+- `radio add` unwraps `.pls`/`.m3u` wrappers on the Mac and reads the content
   type. It then runs the same test as `radio check` before saving.
 - **Check on the box:** the tool sends `dev.audiobox.RADIO_CHECK` with the URL. The app plays
   it muted for up to 15 s and writes the result to `radio-check.json`: ok/error, time to
