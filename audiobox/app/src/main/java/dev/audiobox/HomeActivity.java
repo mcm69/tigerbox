@@ -51,6 +51,8 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private static final int COLUMNS = 4, ROWS = 2, PER_PAGE = COLUMNS * ROWS;
     private static final int ICON_PX = 150;
     private static final int COVER_PX = 340;
+    /** The highlight ring around the loaded tile. */
+    private static final int RING_RADIUS = 18, RING_WIDTH = 6;
     private static final int VOLUME_STEP = 5; // STREAM_MUSIC runs 0..100 on this box
 
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -509,8 +511,17 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
             setPadding(0, 4, 0, 0);
 
             frame = new FrameLayout(c);
-            frame.setPadding(6, 6, 6, 6);
+            frame.setPadding(RING_WIDTH, RING_WIDTH, RING_WIDTH, RING_WIDTH);
             image = new ImageView(c);
+            // Round the cover to the ring's radius minus its width, so the ring's inner
+            // corners follow the outer ones (and covers look the same unhighlighted).
+            image.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                @Override
+                public void getOutline(View v, android.graphics.Outline o) {
+                    o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), RING_RADIUS - RING_WIDTH);
+                }
+            });
+            image.setClipToOutline(true);
             frame.addView(image, new FrameLayout.LayoutParams(ICON_PX, ICON_PX));
             badge = new ImageView(c);
             ((ImageView) badge).setImageResource(R.drawable.ic_play);
@@ -568,7 +579,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
                     : snap.station != null && snap.station.id.equals(station.id);
             if (loaded) {
                 GradientDrawable ring = new GradientDrawable();
-                ring.setCornerRadius(18);
+                ring.setCornerRadius(RING_RADIUS);
                 ring.setColor(Ui.ACCENT);
                 frame.setBackground(ring);
             } else {
