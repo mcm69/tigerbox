@@ -18,7 +18,8 @@ An offline audio box. No account, no cloud.
 
 A parent manages the box from a Mac over ADB and through a locked admin screen on the box.
 
-**Non-goals for v1:** streaming, Wi-Fi, Bluetooth headphones (§7: these would mean
+**Non-goals for v1:** streaming, Wi-Fi (a curated internet radio tab is specced separately
+in [RADIO-SPEC.md](RADIO-SPEC.md)), Bluetooth headphones (§7: these would mean
 reimplementing the serial protocol), recording, and app updates over the air.
 
 ## 2. Platform constraints
