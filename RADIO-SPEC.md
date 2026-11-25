@@ -128,8 +128,8 @@ the stations is the only filter.
 
 ## R8. Lights
 
-As section 9, with one addition: while connecting, the ring is steady (green, or yellow at low
-battery). It starts breathing once audio actually plays. The bottom light also follows the
+As section 9, with one addition: while connecting, the ring breathes as when paused (green,
+or yellow at low battery). It turns steady once audio actually plays. The bottom light also follows the
 playing state, not the connecting one.
 
 ## R9. Mac tool

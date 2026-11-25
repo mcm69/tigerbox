@@ -15,7 +15,8 @@ import java.nio.charset.StandardCharsets;
  * happen on a background thread.
  *
  * Priority, highest first: power-off warning, error flash, player. Low battery
- * turns the ring's green into yellow (steady or breathing, like green).
+ * turns the ring's green into yellow. The ring is steady while playing and
+ * breathes while paused or idle.
  *
  * The bottom light is an SN3199 LED driver on I2C. Its kernel driver starts in
  * a sound-reactive mode ({@code led_debug} = 1); we switch that off and drive the
@@ -155,7 +156,8 @@ final class Lights {
             head = headFor(player);
         } else {
             ring = lowBattery ? YELLOW : GREEN;
-            if (player == Player.PLAYING) breath = lowBattery ? BREATH_YELLOW : BREATH_GREEN;
+            // Steady while playing (breathing there distracts), breathing otherwise.
+            if (player != Player.PLAYING) breath = lowBattery ? BREATH_YELLOW : BREATH_GREEN;
             head = headFor(player);
         }
         boolean breathChanged = !breath.equals(lastBreath);

@@ -636,6 +636,8 @@ Findings:
   85 (PLAY_PAUSE), so tests should tap the button instead.
 - Removing the loaded playlist now unloads it: the player stops, forgets it
   as the one to resume, and the screen returns to the grid.
+- Ring swapped (2026-11-25): steady while playing, breathing when paused,
+  idle or connecting; breathing during playback was distracting.
 - Lights rework (2026-11-24):
   - Pausing left the ring dark instead of steady: after `breathled_switch`
     0 the driver switches the ring off a moment later, over a colour written

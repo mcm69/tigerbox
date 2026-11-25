@@ -893,7 +893,7 @@ public class PlayerService extends Service {
         publishState();
         Lights.Player lights;
         if (station != null) {
-            // Breathing only once audio plays; steady while connecting (RADIO-SPEC R8).
+            // "Playing" (steady ring) only once audio plays; breathing while connecting (RADIO-SPEC R8).
             lights = radio.isPlaying() ? Lights.Player.PLAYING : Lights.Player.PAUSED;
         } else {
             lights = playlist == null ? Lights.Player.IDLE

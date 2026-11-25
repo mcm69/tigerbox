@@ -206,13 +206,16 @@ app's `/sdcard/tigerbox` logs folder is left alone.
 
 ## 9. Lights (decided)
 
+Changed 2026-11-25: the ring is steady while playing and breathes when paused or idle
+(breathing during playback was distracting).
+
 | State | Ring (`modem_status` / `breathled_switch`) | Tiger head (`laohutou_status`) |
 |---|---|---|
-| Idle, ready | green steady | dim |
-| Playing | green breathing (`1`) | on |
-| Paused | green steady | dim |
+| Idle, ready | green breathing (`1`) | dim |
+| Playing | green steady | on |
+| Paused | green breathing (`1`) | dim |
 | Error / not allowed | red flicker (`000011`) 3 s | unchanged |
-| Low battery (< 15 %, not charging) | yellow instead of green: steady, or breathing (`7`) while playing | unchanged |
+| Low battery (< 15 %, not charging) | yellow instead of green: steady while playing, else breathing (`7`) | unchanged |
 | Powering off (button held) | red steady | off |
 
 The bottom blue light (SN3199) breathes slowly while playing and is off otherwise. A
