@@ -49,6 +49,8 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     public static final String ACTION_RELOAD = "dev.audiobox.RELOAD";
 
     private static final int COLUMNS = 4, ROWS = 2, PER_PAGE = COLUMNS * ROWS;
+    /** The tile grid: below the top bar (clear of the tabs), above the page dots. */
+    private static final int GRID_TOP = 60, GRID_H = 390;
     private static final int ICON_PX = 150;
     private static final int COVER_PX = 340;
     /** The highlight ring around the loaded tile. */
@@ -356,19 +358,19 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         musicTabButton.setOnClickListener(v -> setTab(false));
         radioTabButton = tabButton(R.drawable.ic_radio);
         radioTabButton.setOnClickListener(v -> setTab(true));
-        LinearLayout.LayoutParams tb = new LinearLayout.LayoutParams(96, 40);
+        LinearLayout.LayoutParams tb = new LinearLayout.LayoutParams(112, 48);
         tb.setMargins(8, 0, 8, 0);
         tabs.addView(musicTabButton, tb);
         tabs.addView(radioTabButton, new LinearLayout.LayoutParams(tb));
         tabs.setVisibility(View.GONE);
         FrameLayout.LayoutParams tabsLp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, 44, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-        tabsLp.topMargin = 2;
+                ViewGroup.LayoutParams.WRAP_CONTENT, 48, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        tabsLp.topMargin = 4;
         screen.addView(tabs, tabsLp);
 
         tiles = new FrameLayout(this);
-        FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(800, 400, Gravity.TOP);
-        tlp.topMargin = 40;
+        FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(800, GRID_H, Gravity.TOP);
+        tlp.topMargin = GRID_TOP;
         screen.addView(tiles, tlp);
 
         // Admin: hold the top-left corner for 5 s (APP-SPEC section 7).
@@ -403,7 +405,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         ImageButton b = new ImageButton(this);
         b.setImageResource(icon);
         b.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        b.setPadding(0, 5, 0, 5);
+        b.setPadding(0, 7, 0, 7);
         return b;
     }
 
@@ -427,7 +429,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private static void styleTab(ImageButton b, boolean selected) {
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(selected ? Ui.ACCENT : Ui.PANEL);
-        bg.setCornerRadius(20);
+        bg.setCornerRadius(24);
         b.setBackground(bg);
         b.setColorFilter(selected ? 0xFF1E2A3A : Ui.TEXT);
     }
@@ -450,7 +452,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private void layoutPage() {
         tiles.removeAllViews();
         page = Math.min(page, pageCount() - 1);
-        int cellW = 800 / COLUMNS, cellH = 400 / ROWS;
+        int cellW = 800 / COLUMNS, cellH = GRID_H / ROWS;
         int first = page * PER_PAGE;
         for (int i = first; i < Math.min(itemCount(), first + PER_PAGE); i++) {
             int slot = i - first;
