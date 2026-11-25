@@ -84,6 +84,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private ImageButton musicTabButton, radioTabButton;
     // player
     private View playerScreen;
+    private View goodbyeOverlay;
     private ImageView cover;
     private TextView title, trackText;
     /** Song title under the playlist label; scrolls (marquee) while playing. */
@@ -182,7 +183,10 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         playerScreen.setVisibility(View.GONE);
         messageOverlay = buildMessageOverlay();
         root.addView(messageOverlay);
+        goodbyeOverlay = buildGoodbye();
+        root.addView(goodbyeOverlay);
         setContentView(root);
+        if (Goodbye.ACTION_SHOW.equals(getIntent().getAction())) goodbyeOverlay.setVisibility(View.VISIBLE);
 
         registerReceiver(reload, new IntentFilter(ACTION_RELOAD));
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
@@ -190,6 +194,34 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         online = Net.online(this);
         registerReceiver(connectivity, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
         PlayerService.send(this, PlayerService.ACTION_START);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (Goodbye.ACTION_SHOW.equals(intent.getAction())) goodbyeOverlay.setVisibility(View.VISIBLE);
+    }
+
+    /** Shown while powering off (Goodbye); covers everything and takes the touches. */
+    private View buildGoodbye() {
+        LinearLayout v = new LinearLayout(this);
+        v.setOrientation(LinearLayout.VERTICAL);
+        v.setGravity(Gravity.CENTER);
+        v.setBackgroundColor(Ui.BG);
+        v.setClickable(true);
+        ImageView moon = new ImageView(this);
+        moon.setImageResource(R.drawable.ic_moon);
+        moon.setColorFilter(Ui.ACCENT);
+        v.addView(moon, new LinearLayout.LayoutParams(140, 140));
+        TextView bye = Ui.text(this, 48, Ui.TEXT);
+        bye.setText(R.string.goodbye);
+        bye.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = 24;
+        v.addView(bye, lp);
+        v.setVisibility(View.GONE);
+        return v;
     }
 
     @Override

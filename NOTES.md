@@ -636,6 +636,12 @@ Findings:
   85 (PLAY_PAUSE), so tests should tap the button instead.
 - Removing the loaded playlist now unloads it: the player stops, forgets it
   as the one to resume, and the screen returns to the grid.
+- Shutdown reworked (2026-11-25): after the 3 s hold the ring used to fall
+  back to the player's state (breathing) for ~1 s once the button was
+  released, before the lights went off. `Lights.allOff()` is now one-way: it
+  ignores every later update. Then a "Bye-bye!" screen and a shutdown chime
+  (~2 s), then `ACTION_REQUEST_SHUTDOWN`. A startup chime plays on
+  `BOOT_COMPLETED`. Chimes come from `tools/chimes.py`.
 - Ring swapped (2026-11-25): steady while playing, breathing when paused,
   idle or connecting; breathing during playback was distracting.
 - Lights rework (2026-11-24):

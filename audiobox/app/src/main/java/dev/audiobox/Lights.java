@@ -79,6 +79,8 @@ final class Lights {
     /** null = not written yet (the driver's sound-reactive mode may be on). */
     private Boolean lastBottom;
     private boolean bottomBroken;
+    /** Shutting down: stays dark (allOff()). */
+    private boolean off;
 
     private final Runnable endError = () -> {
         errorFlash = false;
@@ -135,9 +137,15 @@ final class Lights {
         });
     }
 
-    /** Ring and head off, e.g. right before shutdown. */
+    /**
+     * Everything off for good: the box is shutting down. Later player, battery or
+     * button updates are ignored, so nothing lights up again on the way out.
+     */
     void allOff() {
         worker.post(() -> {
+            off = true;
+            worker.removeCallbacks(endError);
+            worker.removeCallbacks(resetRing);
             write(BREATH, BREATH_STOP, true);
             write(RING, OFF, true);
             writeHead(0, true);
@@ -146,6 +154,7 @@ final class Lights {
     }
 
     private void apply() {
+        if (off) return;
         String ring, breath = BREATH_STOP;
         int head;
         if (warning) {

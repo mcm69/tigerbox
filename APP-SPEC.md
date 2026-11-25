@@ -66,8 +66,11 @@ It is installed with the app and must not use the `WAKE` flag (§4).
 | Gesture | Effect |
 |---|---|
 | Short press | Play/pause. If nothing is loaded, it resumes the last playlist or station. When playback starts this way, the home screen switches from the grid to the player screen. Arrives through the `MediaSession` when the screen is off and through `onKeyDown` in `HomeActivity` when it is on. Either way the app also wakes the screen briefly so the child sees a reaction. |
-| Hold ~3 s | Power off. The ring turns red as a warning, the resume position is saved, then the app shuts the box down (`SHUTDOWN` permission). |
+| Hold ~3 s | Power off. The ring turns red after 1 s as a warning. At 3 s the resume position is saved, all lights go off, a "Bye-bye!" screen shows and a soft shutdown chime plays, then the app shuts the box down (`SHUTDOWN` permission). Idle auto-off goes the same way. |
 | Hold ~6–8 s | The PMIC cuts power in hardware. This is the fallback if the app hangs. |
+
+A soft chime plays once at startup (on `BOOT_COMPLETED`) and at shutdown, at 60 % of the
+media volume. Both are synthesised by `tools/chimes.py` into `res/raw`.
 | Power on | PMIC/charger, outside the app. When charging, a ~3 s hold is needed. |
 
 Hold detection: the key arrives as down/up, so the app measures the time held. It does not
@@ -216,7 +219,7 @@ Changed 2026-11-25: the ring is steady while playing and breathes when paused or
 | Paused | green breathing (`1`) | dim |
 | Error / not allowed | red flicker (`000011`) 3 s | unchanged |
 | Low battery (< 15 %, not charging) | yellow instead of green: steady while playing, else breathing (`7`) | unchanged |
-| Powering off (button held) | red steady | off |
+| Powering off (button held) | red steady, then all off (and stays off) once shutdown starts | off |
 
 The bottom blue light (SN3199) breathes slowly while playing and is off otherwise. A
 switch in the admin screen (Lights) turns it off for good; it is on by default. At boot

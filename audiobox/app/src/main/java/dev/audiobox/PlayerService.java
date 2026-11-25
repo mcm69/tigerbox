@@ -623,9 +623,9 @@ public class PlayerService extends Service {
             return;
         }
         Log.i(TAG, "idle for " + idleFor / 60_000 + " min: powering off");
+        Goodbye.start(this);
         pause();
         writeNow();
-        Power.shutdown(this);
     }
 
     private PendingIntent alarmIntent(String action) {

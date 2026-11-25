@@ -91,6 +91,6 @@ final class ButtonHandler {
     private void powerOff() {
         Log.i(HomeActivity.TAG, "big button held: powering off");
         PlayerService.send(app, PlayerService.ACTION_SAVE_AND_STOP);
-        main.postDelayed(() -> Power.shutdown(app), 500); // let state.json reach the disk
+        Goodbye.start(app); // lights off now; shuts down after the chime (state is saved by then)
     }
 }
