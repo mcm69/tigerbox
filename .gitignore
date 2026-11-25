@@ -16,3 +16,6 @@ survey/decompiled/
 
 # Built native helpers
 tools/sn3199/sn3199w
+
+# station logos (third-party trademarks; pushed to the box, not committed)
+stations/
