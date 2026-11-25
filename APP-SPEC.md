@@ -54,6 +54,8 @@ One APK, one process:
   done.
 - **`Store`** loads and saves the JSON files described in section 6, writing each one
   atomically (temporary file, then rename).
+- **`RadioPlayer`** plays internet radio stations through ExoPlayer, for the radio tab
+  ([RADIO-SPEC.md](RADIO-SPEC.md)). `PlayerService` holds either a playlist or a station.
 - *Phase 2:* **`CardReader`** (section 13).
 
 ## 4. The big button (decided, tested 2026-11-24)
@@ -236,6 +238,8 @@ audiobox time                          # set the box clock from the Mac (root vi
 audiobox pin-reset
 audiobox install <apk>                 # copy to /system/priv-app (already rw) + reboot
 audiobox lockdown [--undo]             # stock app and unused packages off (section 11)
+audiobox radio add|list|set|rm|check   # internet radio stations (RADIO-SPEC R9)
+audiobox keyboard on|off               # on-screen keyboard, for joining Wi-Fi
 ```
 
 Every command that changes something ends with the `RELOAD` broadcast. Pushing runs at about

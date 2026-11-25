@@ -24,6 +24,8 @@ public final class Settings {
     public boolean bedtimeEnabled = false;
     /** The blue light under the box breathes while playing (APP-SPEC section 9). */
     public boolean bottomLight = true;
+    /** The radio tab (RADIO-SPEC R7): off until a parent switches it on. */
+    public boolean radioEnabled = false;
     /** Minutes after midnight. */
     public int bedtimeStart = 19 * 60;
     public int bedtimeEnd = 7 * 60;
@@ -41,6 +43,7 @@ public final class Settings {
         s.idleOffMinutes = Math.max(0, j.optInt("idleOffMinutes", s.idleOffMinutes));
         s.idleOffWhileCharging = j.optBoolean("idleOffWhileCharging", s.idleOffWhileCharging);
         s.bottomLight = j.optBoolean("bottomLight", s.bottomLight);
+        s.radioEnabled = j.optBoolean("radio", s.radioEnabled);
         JSONObject b = j.optJSONObject("bedtime");
         if (b != null) {
             s.bedtimeEnabled = b.optBoolean("enabled", false);
@@ -65,6 +68,7 @@ public final class Settings {
             j.put("idleOffMinutes", idleOffMinutes);
             j.put("idleOffWhileCharging", idleOffWhileCharging);
             j.put("bottomLight", bottomLight);
+            j.put("radio", radioEnabled);
             JSONObject b = new JSONObject();
             b.put("enabled", bedtimeEnabled);
             b.put("start", formatTime(bedtimeStart));

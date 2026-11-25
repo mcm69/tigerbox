@@ -10,7 +10,7 @@ import java.util.List;
  * Resume positions per playlist, kept in state.json (APP-SPEC 5.3):
  *
  * <pre>
- * { "last": "animals",
+ * { "last": "animals",            (with "lastType": "station" when it's a radio station)
  *   "positions": { "animals": { "track": 1, "file": "2 Owl.m4a", "positionMs": 5300 } } }
  * </pre>
  *
@@ -52,8 +52,20 @@ public final class ResumeBook {
         return s.isEmpty() ? null : s;
     }
 
+    /** The last thing played was a playlist with this id (null: nothing to resume). */
     public void setLast(String id) {
         put(state, "last", id);
+        state.remove("lastType");
+    }
+
+    /** The last thing played was a radio station (RADIO-SPEC R6). */
+    public void setLastStation(String id) {
+        put(state, "last", id);
+        put(state, "lastType", "station");
+    }
+
+    public boolean lastIsStation() {
+        return "station".equals(state.optString("lastType", ""));
     }
 
     /** Where playback of this playlist should start. */

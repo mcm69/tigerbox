@@ -3,4 +3,8 @@
     <string name="app_name">audiobox</string>
     <string name="empty_library">No playlists yet.\nPush a folder to /sdcard/audiobox/library/</string>
     <string name="bedtime">Sleep time</string>
+    <string name="empty_radio">No stations yet.\nAdd one from the Mac (audiobox radio add)</string>
+    <string name="no_internet">No internet</string>
+    <string name="connecting">Connecting…</string>
+    <string name="cant_reach">Can\'t reach this station</string>
 </resources>

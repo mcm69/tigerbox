@@ -50,9 +50,28 @@ final class Icons {
         if (b != null) return b;
         b = p.icon != null ? decodeFile(p.icon) : null;
         if (b == null) b = embeddedArt(p.tracks.get(0));
-        if (b == null) b = letterTile(p);
+        if (b == null) b = letterTile(p.id, p.label);
         cache.put(key, b);
         return b;
+    }
+
+    Bitmap cached(Station st) {
+        return cache.get(key(st));
+    }
+
+    /** A station's logo, else a letter tile. Slow; call off the main thread. */
+    Bitmap load(Station st) {
+        String key = key(st);
+        Bitmap b = cache.get(key);
+        if (b != null) return b;
+        b = st.logo != null ? decodeFile(st.logo) : null;
+        if (b == null) b = letterTile(st.id, st.label);
+        cache.put(key, b);
+        return b;
+    }
+
+    private static String key(Station st) {
+        return "radio|" + st.id + "|" + (st.logo != null ? st.logo.getPath() + "|" + st.logo.lastModified() : "") + "|" + st.label;
     }
 
     void clear() {
@@ -116,15 +135,15 @@ final class Icons {
         return out;
     }
 
-    private Bitmap letterTile(Playlist p) {
+    private Bitmap letterTile(String id, String label) {
         Bitmap b = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
         Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bg.setColor(TILE_COLOURS[Math.abs(p.id.hashCode() % TILE_COLOURS.length)]);
+        bg.setColor(TILE_COLOURS[Math.abs(id.hashCode() % TILE_COLOURS.length)]);
         float r = size * 0.18f;
         c.drawRoundRect(new RectF(0, 0, size, size), r, r, bg);
 
-        String letter = p.label.isEmpty() ? "?" : p.label.substring(0, p.label.offsetByCodePoints(0, 1));
+        String letter = label.isEmpty() ? "?" : label.substring(0, label.offsetByCodePoints(0, 1));
         Paint t = new Paint(Paint.ANTI_ALIAS_FLAG);
         t.setColor(Color.WHITE);
         t.setTypeface(face);

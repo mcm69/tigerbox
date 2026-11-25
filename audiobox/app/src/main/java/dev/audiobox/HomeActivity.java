@@ -40,7 +40,8 @@ import java.util.concurrent.Executors;
 
 /**
  * The kid UI (APP-SPEC section 7): a paged 4 x 2 grid of playlists, and the player
- * screen. Built in code, sized for the box's 800 x 480 mdpi panel (1 dp = 1 px).
+ * screen. With radio switched on, two tabs in the top bar switch the grid
+ * between playlists and stations (RADIO-SPEC R5). Built in code, sized for the box's 800 x 480 mdpi panel (1 dp = 1 px).
  */
 public class HomeActivity extends Activity implements PlayerService.Listener {
     static final String TAG = "audiobox";
@@ -57,6 +58,11 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private final Icons icons = new Icons(ICON_PX);
     private final Icons covers = new Icons(COVER_PX);
     private final List<Playlist> playlists = new ArrayList<>();
+    private final List<Station> stations = new ArrayList<>();
+    /** The grid shows stations (radio tab) instead of playlists. */
+    private boolean radioTab;
+    private boolean radioEnabled;
+    private boolean online;
 
     private Store store;
     private AudioManager audio;
@@ -70,6 +76,8 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private Ui.DotsView pageDots;
     private TextView empty;
     private Ui.BatteryView battery;
+    private LinearLayout tabs;
+    private ImageButton musicTabButton, radioTabButton;
     // player
     private View playerScreen;
     private ImageView cover;
@@ -83,7 +91,9 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     private Ui.BarView progress, volumeBar;
     private ImageButton playPause;
     private TextView sleepText;
-    private View bedtimeOverlay;
+    private View messageOverlay;
+    private ImageView messageIcon;
+    private TextView messageText;
 
     private final BroadcastReceiver reload = new BroadcastReceiver() {
         @Override
@@ -104,6 +114,17 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
             boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING
                     || status == BatteryManager.BATTERY_STATUS_FULL;
             if (level >= 0 && scale > 0) battery.set(level * 100 / scale, charging);
+        }
+    };
+
+    private final BroadcastReceiver connectivity = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean now = Net.online(context);
+            if (now == online) return;
+            online = now;
+            if (radioTab) layoutPage();
+            showPlayer(snap);
         }
     };
 
@@ -155,13 +176,15 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         root.addView(gridScreen);
         root.addView(playerScreen);
         playerScreen.setVisibility(View.GONE);
-        bedtimeOverlay = buildBedtimeOverlay();
-        root.addView(bedtimeOverlay);
+        messageOverlay = buildMessageOverlay();
+        root.addView(messageOverlay);
         setContentView(root);
 
         registerReceiver(reload, new IntentFilter(ACTION_RELOAD));
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         registerReceiver(volumeReceiver, new IntentFilter("android.media.VOLUME_CHANGED_ACTION"));
+        online = Net.online(this);
+        registerReceiver(connectivity, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
         PlayerService.send(this, PlayerService.ACTION_START);
     }
 
@@ -194,6 +217,7 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         unregisterReceiver(reload);
         unregisterReceiver(batteryReceiver);
         unregisterReceiver(volumeReceiver);
+        unregisterReceiver(connectivity);
         io.shutdownNow();
         super.onDestroy();
     }
@@ -242,41 +266,51 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     }
 
     @Override
-    public void onBlocked(Playlist p) {
-        bedtimeOverlay.setVisibility(View.VISIBLE);
-        main.removeCallbacks(hideBedtime);
-        main.postDelayed(hideBedtime, 3_000);
+    public void onBlocked() {
+        showMessage(R.drawable.ic_moon, getString(R.string.bedtime));
     }
 
-    private final Runnable hideBedtime = () -> bedtimeOverlay.setVisibility(View.GONE);
+    /** A big icon and a word or two over everything, for 3 s (bedtime, no internet). */
+    private void showMessage(int icon, String text) {
+        messageIcon.setImageResource(icon);
+        // The moon is tinted; the no-Wi-Fi icon has its own two colours.
+        if (icon == R.drawable.ic_moon) messageIcon.setColorFilter(0xFFFFE082);
+        else messageIcon.clearColorFilter();
+        messageText.setText(text);
+        messageOverlay.setVisibility(View.VISIBLE);
+        main.removeCallbacks(hideMessage);
+        main.postDelayed(hideMessage, 3_000);
+    }
 
-    private View buildBedtimeOverlay() {
+    private final Runnable hideMessage = () -> messageOverlay.setVisibility(View.GONE);
+
+    private View buildMessageOverlay() {
         LinearLayout o = new LinearLayout(this);
         o.setOrientation(LinearLayout.VERTICAL);
         o.setGravity(Gravity.CENTER);
         o.setBackgroundColor(0xF0101828);
-        ImageView moon = new ImageView(this);
-        moon.setImageResource(R.drawable.ic_moon);
-        moon.setColorFilter(0xFFFFE082);
-        o.addView(moon, new LinearLayout.LayoutParams(200, 200));
-        TextView t = Ui.text(this, 36, Ui.TEXT);
-        t.setText(R.string.bedtime);
-        t.setGravity(Gravity.CENTER);
-        t.setPadding(0, 20, 0, 0);
-        o.addView(t);
+        messageIcon = new ImageView(this);
+        o.addView(messageIcon, new LinearLayout.LayoutParams(200, 200));
+        messageText = Ui.text(this, 36, Ui.TEXT);
+        messageText.setGravity(Gravity.CENTER);
+        messageText.setPadding(0, 20, 0, 0);
+        o.addView(messageText);
         o.setVisibility(View.GONE);
-        o.setOnClickListener(v -> hideBedtime.run());
+        o.setOnClickListener(v -> hideMessage.run());
         return o;
+    }
+
+    /** "p:id" or "s:id" for what's loaded, or null. */
+    private static String loadedKey(PlayerService.Snapshot s) {
+        return s.playlist != null ? "p:" + s.playlist.id : s.station != null ? "s:" + s.station.id : null;
     }
 
     @Override
     public void onPlayerChanged(PlayerService.Snapshot s) {
-        boolean newPlaylist = s.playlist != null
-                && (snap.playlist == null || !snap.playlist.id.equals(s.playlist.id));
-        boolean unloaded = s.playlist == null && snap.playlist != null;
+        String before = loadedKey(snap), now = loadedKey(s);
         snap = s;
         showPlayer(s);
-        if (newPlaylist || unloaded) layoutPage(); // move the "playing" highlight
+        if (before == null ? now != null : !before.equals(now)) layoutPage(); // move the highlight
         else refreshBadges();
     }
 
@@ -304,6 +338,23 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
                 Gravity.TOP | Gravity.START);
         clk.setMargins(20, 8, 0, 0);
         screen.addView(clock, clk);
+
+        // Music / radio tabs, centred in the top bar (RADIO-SPEC R5).
+        tabs = new LinearLayout(this);
+        tabs.setGravity(Gravity.CENTER);
+        musicTabButton = tabButton(R.drawable.ic_music);
+        musicTabButton.setOnClickListener(v -> setTab(false));
+        radioTabButton = tabButton(R.drawable.ic_radio);
+        radioTabButton.setOnClickListener(v -> setTab(true));
+        LinearLayout.LayoutParams tb = new LinearLayout.LayoutParams(96, 40);
+        tb.setMargins(8, 0, 8, 0);
+        tabs.addView(musicTabButton, tb);
+        tabs.addView(radioTabButton, new LinearLayout.LayoutParams(tb));
+        tabs.setVisibility(View.GONE);
+        FrameLayout.LayoutParams tabsLp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, 44, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        tabsLp.topMargin = 2;
+        screen.addView(tabs, tabsLp);
 
         tiles = new FrameLayout(this);
         FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(800, 400, Gravity.TOP);
@@ -338,8 +389,45 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         return screen;
     }
 
+    private ImageButton tabButton(int icon) {
+        ImageButton b = new ImageButton(this);
+        b.setImageResource(icon);
+        b.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        b.setPadding(0, 5, 0, 5);
+        return b;
+    }
+
+    private void setTab(boolean radio) {
+        if (radio == radioTab) return;
+        radioTab = radio;
+        page = 0;
+        showTabs();
+        layoutPage();
+    }
+
+    /** Tabs only when radio is on and there is a station; otherwise just playlists. */
+    private void showTabs() {
+        boolean show = radioEnabled && !stations.isEmpty();
+        if (!show) radioTab = false;
+        tabs.setVisibility(show ? View.VISIBLE : View.GONE);
+        styleTab(musicTabButton, !radioTab);
+        styleTab(radioTabButton, radioTab);
+    }
+
+    private static void styleTab(ImageButton b, boolean selected) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(selected ? Ui.ACCENT : Ui.PANEL);
+        bg.setCornerRadius(20);
+        b.setBackground(bg);
+        b.setColorFilter(selected ? 0xFF1E2A3A : Ui.TEXT);
+    }
+
+    private int itemCount() {
+        return radioTab ? stations.size() : playlists.size();
+    }
+
     private int pageCount() {
-        return Math.max(1, (playlists.size() + PER_PAGE - 1) / PER_PAGE);
+        return Math.max(1, (itemCount() + PER_PAGE - 1) / PER_PAGE);
     }
 
     private void turnPage(int delta) {
@@ -354,16 +442,17 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         page = Math.min(page, pageCount() - 1);
         int cellW = 800 / COLUMNS, cellH = 400 / ROWS;
         int first = page * PER_PAGE;
-        for (int i = first; i < Math.min(playlists.size(), first + PER_PAGE); i++) {
+        for (int i = first; i < Math.min(itemCount(), first + PER_PAGE); i++) {
             int slot = i - first;
-            Tile t = new Tile(this, playlists.get(i));
+            Tile t = radioTab ? new Tile(this, stations.get(i)) : new Tile(this, playlists.get(i));
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(cellW, cellH);
             lp.leftMargin = (slot % COLUMNS) * cellW;
             lp.topMargin = (slot / COLUMNS) * cellH;
             tiles.addView(t, lp);
         }
         pageDots.set(pageCount(), page);
-        empty.setVisibility(playlists.isEmpty() ? View.VISIBLE : View.GONE);
+        empty.setText(radioTab ? R.string.empty_radio : R.string.empty_library);
+        empty.setVisibility(itemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     private void refreshBadges() {
@@ -379,25 +468,42 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
             }
             List<Playlist> found = Library.visible(
                     Library.scan(store.libraryDir(), store.read(Store.LIBRARY_JSON)));
-            Log.i(TAG, "library: " + found);
+            List<Station> foundStations = Station.visible(store.stations());
+            boolean radioOn = Settings.from(store.read(Store.SETTINGS_JSON)).radioEnabled;
+            Log.i(TAG, "library: " + found + (radioOn ? ", stations: " + foundStations : ""));
             main.post(() -> {
                 playlists.clear();
                 playlists.addAll(found);
+                stations.clear();
+                stations.addAll(foundStations);
+                radioEnabled = radioOn;
+                showTabs();
                 layoutPage();
             });
         });
     }
 
-    /** Icon with its short label; a ring and a badge when it's the loaded playlist. */
+    /** Icon with its short label; a ring and a badge when it's what's loaded. */
     private final class Tile extends LinearLayout {
-        final Playlist playlist;
+        final Playlist playlist; // one of these two is set
+        final Station station;
         final FrameLayout frame;
         final ImageView image;
         final View badge;
+        final View offline;
 
         Tile(Context c, Playlist p) {
+            this(c, p, null);
+        }
+
+        Tile(Context c, Station st) {
+            this(c, null, st);
+        }
+
+        private Tile(Context c, Playlist p, Station st) {
             super(c);
             playlist = p;
+            station = st;
             setOrientation(VERTICAL);
             setGravity(Gravity.CENTER_HORIZONTAL);
             setPadding(0, 4, 0, 0);
@@ -414,10 +520,20 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
             badge.setBackground(dot);
             badge.setPadding(6, 6, 6, 6);
             frame.addView(badge, new FrameLayout.LayoutParams(44, 44, Gravity.BOTTOM | Gravity.END));
+            // Stations only: a "no Wi-Fi" mark while the box is offline (RADIO-SPEC R3).
+            ImageView off = new ImageView(c);
+            off.setImageResource(R.drawable.ic_wifi_off);
+            GradientDrawable offBg = new GradientDrawable();
+            offBg.setShape(GradientDrawable.OVAL);
+            offBg.setColor(Ui.PANEL);
+            off.setBackground(offBg);
+            off.setPadding(8, 8, 8, 8);
+            offline = off;
+            frame.addView(off, new FrameLayout.LayoutParams(44, 44, Gravity.TOP | Gravity.END));
             addView(frame, new LayoutParams(ICON_PX + 12, ICON_PX + 12));
 
             TextView label = Ui.text(c, 21, Ui.TEXT);
-            label.setText(p.label);
+            label.setText(p != null ? p.label : st.label);
             label.setSingleLine(true);
             label.setEllipsize(TextUtils.TruncateAt.END);
             label.setGravity(Gravity.CENTER);
@@ -426,20 +542,30 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
             addView(label, lp);
 
             setOnClickListener(v -> {
-                PlayerService.play(HomeActivity.this, playlist.id);
-                if (player == null || !player.blockedNow(playlist)) showPlayerScreen();
+                if (playlist != null) {
+                    PlayerService.play(HomeActivity.this, playlist.id);
+                    if (player == null || !player.blockedNow(playlist)) showPlayerScreen();
+                } else if (!online) {
+                    Lights.get().errorFlash();
+                    showMessage(R.drawable.ic_wifi_off, getString(R.string.no_internet));
+                } else {
+                    PlayerService.playStation(HomeActivity.this, station.id);
+                    if (player == null || !player.blockedNow(station)) showPlayerScreen();
+                }
             });
             refresh();
-            Bitmap b = icons.cached(p);
+            Bitmap b = p != null ? icons.cached(p) : icons.cached(st);
             if (b != null) image.setImageBitmap(b);
             else io.execute(() -> {
-                Bitmap loaded = icons.load(p);
+                Bitmap loaded = p != null ? icons.load(p) : icons.load(st);
                 main.post(() -> image.setImageBitmap(loaded));
             });
         }
 
         void refresh() {
-            boolean loaded = snap.playlist != null && snap.playlist.id.equals(playlist.id);
+            boolean loaded = playlist != null
+                    ? snap.playlist != null && snap.playlist.id.equals(playlist.id)
+                    : snap.station != null && snap.station.id.equals(station.id);
             if (loaded) {
                 GradientDrawable ring = new GradientDrawable();
                 ring.setCornerRadius(18);
@@ -449,7 +575,10 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
                 frame.setBackground(null);
             }
             badge.setVisibility(loaded && snap.playing ? View.VISIBLE : View.GONE);
-            setAlpha(player != null && player.blockedNow(playlist) ? 0.35f : 1f);
+            offline.setVisibility(station != null && !online ? View.VISIBLE : View.GONE);
+            boolean blocked = player != null
+                    && (playlist != null ? player.blockedNow(playlist) : player.blockedNow(station));
+            setAlpha(blocked || (station != null && !online) ? 0.35f : 1f);
         }
     }
 
@@ -583,17 +712,27 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
 
     private void showScreenFor(PlayerService.Snapshot s) {
         onPlayerChanged(s);
-        if (s.playlist != null) showPlayerScreen();
-        else showGrid();
+        if (s.loaded()) {
+            // The tab of whatever is loaded, so "back" lands next to it.
+            radioTab = s.station != null;
+            showTabs();
+            showPlayerScreen();
+        } else {
+            showGrid();
+        }
     }
 
     private void showGrid() {
         playerScreen.setVisibility(View.GONE);
         gridScreen.setVisibility(View.VISIBLE);
-        // Show the page holding the loaded playlist.
-        if (snap.playlist != null) {
+        // Show the page holding what's loaded, when it's in this tab.
+        if (!radioTab && snap.playlist != null) {
             for (int i = 0; i < playlists.size(); i++) {
                 if (playlists.get(i).id.equals(snap.playlist.id)) page = i / PER_PAGE;
+            }
+        } else if (radioTab && snap.station != null) {
+            for (int i = 0; i < stations.size(); i++) {
+                if (stations.get(i).id.equals(snap.station.id)) page = i / PER_PAGE;
             }
         }
         layoutPage();
@@ -606,10 +745,17 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     }
 
     private void showPlayer(PlayerService.Snapshot s) {
-        if (s.playlist == null) {
+        if (!s.loaded()) {
             if (playerScreen.getVisibility() == View.VISIBLE) showGrid();
             return;
         }
+        if (s.station != null) {
+            showStation(s);
+            return;
+        }
+        cover.setAlpha(1f);
+        progress.setVisibility(View.VISIBLE);
+        trackText.setTextColor(Ui.TEXT_DIM);
         title.setText(s.playlist.label);
         showSong(s);
         int n = s.playlist.tracks.size();
@@ -636,6 +782,57 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
         }
     }
 
+    /** The radio player (RADIO-SPEC R5): logo, name, "now playing", and the stream's state. */
+    private void showStation(PlayerService.Snapshot s) {
+        Station st = s.station;
+        title.setText(st.label);
+        songFor = null; // a playlist shown later sets its own title again
+        String now = s.nowPlaying != null ? s.nowPlaying : "";
+        if (!now.contentEquals(song.getText())) song.setText(now);
+        boolean live = s.radioState == RadioPlayer.State.LIVE;
+        setScrolling(live);
+        trackDots.setVisibility(View.INVISIBLE);
+        progress.setVisibility(View.INVISIBLE);
+        String state;
+        int colour = Ui.TEXT_DIM;
+        switch (s.radioState) {
+            case LIVE:
+                state = "● LIVE";
+                colour = Ui.ACCENT;
+                break;
+            case CONNECTING:
+            case RETRYING:
+                state = online ? getString(R.string.connecting) : getString(R.string.no_internet);
+                break;
+            case FAILED:
+                state = online ? getString(R.string.cant_reach) : getString(R.string.no_internet);
+                break;
+            default:
+                state = "";
+        }
+        trackText.setText(state);
+        trackText.setTextColor(colour);
+        playPause.setImageResource(s.playing ? R.drawable.ic_pause : R.drawable.ic_play);
+        cover.setAlpha(s.radioState == RadioPlayer.State.FAILED ? 0.4f : 1f);
+        showProgress(s);
+        Bitmap c = covers.cached(st);
+        if (c != null) cover.setImageBitmap(c);
+        else io.execute(() -> {
+            Bitmap loaded = covers.load(st);
+            main.post(() -> {
+                if (snap.station != null && snap.station.id.equals(st.id)) cover.setImageBitmap(loaded);
+            });
+        });
+    }
+
+    private void setScrolling(boolean on) {
+        if (on == songScrolling) return;
+        songScrolling = on;
+        song.setEllipsize(on ? TextUtils.TruncateAt.MARQUEE : TextUtils.TruncateAt.END);
+        song.setHorizontalFadingEdgeEnabled(on); // soft edges while scrolling
+        song.setSelected(on); // a marquee only runs while selected
+    }
+
     /**
      * The current song's title: from the cache, else the cleaned-up filename at
      * once and the tag title when it has been read. Long titles scroll while
@@ -658,16 +855,11 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
                 });
             }
         }
-        if (s.playing != songScrolling) {
-            songScrolling = s.playing;
-            song.setEllipsize(s.playing ? TextUtils.TruncateAt.MARQUEE : TextUtils.TruncateAt.END);
-            song.setHorizontalFadingEdgeEnabled(s.playing); // soft edges while scrolling
-            song.setSelected(s.playing); // a marquee only runs while selected
-        }
+        setScrolling(s.playing);
     }
 
     private void showProgress(PlayerService.Snapshot s) {
-        progress.set(s.durationMs > 0 ? (float) s.positionMs / s.durationMs : 0, 1);
+        if (s.playlist != null) progress.set(s.durationMs > 0 ? (float) s.positionMs / s.durationMs : 0, 1);
         long left = s.sleepEndsAt == 0 ? 0 : s.sleepEndsAt - System.currentTimeMillis();
         if (left > 0) {
             sleepText.setVisibility(View.VISIBLE);

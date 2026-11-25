@@ -1,7 +1,9 @@
 package dev.audiobox;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.json.JSONObject;
 import org.junit.Test;
@@ -90,5 +92,16 @@ public class ResumeBookTest {
         JSONObject state = new JSONObject(
                 "{\"positions\":{\"a\":{\"track\":7,\"file\":\"gone.mp3\",\"positionMs\":9}}}");
         assertEquals(0, new ResumeBook(state).spotFor(playlist("a", true, "1.mp3")).track);
+    }
+
+    @Test
+    public void lastCanBeAStationOrAPlaylist() {
+        ResumeBook b = new ResumeBook(new JSONObject());
+        b.setLastStation("klassika");
+        assertEquals("klassika", b.last());
+        assertTrue(b.lastIsStation());
+        b.setLast("animals");
+        assertEquals("animals", b.last());
+        assertFalse(b.lastIsStation());
     }
 }

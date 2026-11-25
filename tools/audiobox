@@ -14,6 +14,15 @@
     audiobox lockdown [--undo]            switch off the stock app and unused packages
     audiobox reload                       tell the app to rescan
 
+  Internet radio (RADIO-SPEC.md):
+    audiobox radio add URL [ID] [--label TEXT --icon FILE --bedtime --hidden]
+                                          resolve, test-play on the box, then save
+    audiobox radio list                   stations with flags and last check
+    audiobox radio set ID key=value ...   label, url, order, bedtime, hidden
+    audiobox radio rm ID                  remove a station
+    audiobox radio check [ID]             test-play one or all stations on the box
+    audiobox keyboard on|off              on-screen keyboard, for joining Wi-Fi
+
 Needs adb on PATH and one box connected. Commands that change files end with
 the app's RELOAD broadcast, so the box picks the change up at once.
 """
@@ -26,6 +35,9 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import time
+import urllib.parse
+import urllib.request
 
 ROOT = "/sdcard/audiobox"
 LIB = ROOT + "/library"
@@ -151,6 +163,90 @@ def slug(name):
 def entry(lib, pid):
     lib.setdefault("version", 1)
     return lib.setdefault("playlists", {}).setdefault(pid, {})
+
+
+# --- radio helpers (RADIO-SPEC R9) ---------------------------------------------
+
+RADIO_JSON = "radio.json"
+RADIO_DIR = ROOT + "/radio"
+CHECK_JSON = "radio-check.json"
+RADIO_CHECK = "dev.audiobox.RADIO_CHECK"
+STATION_BOOL_KEYS = {"bedtime", "hidden"}
+
+
+def station_entry(radio, sid):
+    radio.setdefault("version", 1)
+    return radio.setdefault("stations", {}).setdefault(sid, {})
+
+
+def resolve_stream(url):
+    """Follows redirects and unwraps .pls / plain .m3u playlists to the stream URL.
+    Returns (stream_url, content_type). HLS (.m3u8) is a stream itself: kept."""
+    for _ in range(3):  # a playlist may point at another playlist
+        req = urllib.request.Request(url, headers={"User-Agent": "audiobox", "Icy-MetaData": "0"})
+        try:
+            with urllib.request.urlopen(req, timeout=15) as r:
+                final = r.geturl()
+                ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+                path = urllib.parse.urlparse(final).path.lower()
+                is_pls = path.endswith(".pls") or ctype in ("audio/x-scpls", "application/pls+xml")
+                is_m3u = (path.endswith(".m3u") or ctype in ("audio/x-mpegurl", "audio/mpegurl")) \
+                    and not path.endswith(".m3u8")
+                if not (is_pls or is_m3u):
+                    return final, ctype
+                text = r.read(65536).decode("utf-8", "replace")
+        except OSError as e:
+            raise Fail(f"can't fetch {url}: {e}")
+        if "#EXT-X-" in text:  # HLS served as .m3u / audio/x-mpegurl
+            return final, "application/vnd.apple.mpegurl"
+        target = None
+        for line in text.splitlines():
+            line = line.strip()
+            if is_pls:
+                m = re.match(r"(?i)file\d+\s*=\s*(\S+)", line)
+                if m:
+                    target = m.group(1)
+                    break
+            elif line and not line.startswith("#"):
+                target = line
+                break
+        if not target:
+            raise Fail(f"{final} is a playlist without a stream URL in it")
+        url = urllib.parse.urljoin(final, target)
+    raise Fail("too many nested playlists")
+
+
+def check_on_box(url):
+    """Asks the app to test-play the URL muted (up to 15 s); returns its result dict."""
+    sh(f"rm -f {q(ROOT + '/' + CHECK_JSON)}")
+    adb("shell", f"am broadcast -a {RADIO_CHECK} --es url {q(url)}")
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        time.sleep(1.5)
+        out = adb("shell", f"cat {q(ROOT + '/' + CHECK_JSON)} 2>/dev/null")
+        if out.strip():
+            try:
+                result = json.loads(out)
+            except json.JSONDecodeError:
+                continue  # caught mid-write
+            if result.get("url") == url:
+                return result
+    return {"ok": False, "error": "no answer from the app (is audiobox running and up to date?)"}
+
+
+def describe_check(r):
+    if r.get("ok"):
+        now = f", now playing: {r['nowPlaying']}" if r.get("nowPlaying") else ""
+        return f"ok, audio after {r.get('ms', 0) / 1000:.1f} s{now}"
+    return f"FAILED: {r.get('error', 'unknown error')}"
+
+
+def push_logo(sid, icon):
+    ext = os.path.splitext(icon)[1].lower()
+    if ext not in ICONS:
+        raise Fail("--icon must be a .png or .jpg")
+    sh(f"mkdir -p {q(RADIO_DIR)} && rm -f {' '.join(q(f'{RADIO_DIR}/{sid}{e}') for e in ICONS)}")
+    adb("push", os.path.abspath(icon), f"{RADIO_DIR}/{sid}{ext}")
 
 
 # --- commands ----------------------------------------------------------------
@@ -448,6 +544,139 @@ def cmd_lockdown(a):
           "undone; the stock app is a HOME app again, so Android will ask which one to use")
 
 
+def cmd_radio_add(a):
+    sid = a.id or slug(a.label or urllib.parse.urlparse(a.url).hostname or "station")
+    if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", sid):
+        raise Fail(f"id {sid!r}: use lowercase letters, digits, '-', '_' or '.'")
+    stream, ctype = resolve_stream(a.url)
+    if stream != a.url:
+        print(f"resolved   {a.url}\n        -> {stream}")
+    print(f"type       {ctype or 'unknown'}")
+    print("checking   on the box (up to 15 s)...")
+    result = check_on_box(stream)
+    print(f"check      {describe_check(result)}")
+    if not result.get("ok") and not a.force:
+        raise Fail("not saved: the box can't play this stream (--force saves it anyway)")
+    radio = read_json(RADIO_JSON)
+    e = station_entry(radio, sid)
+    e["url"] = stream
+    if a.label:
+        e["label"] = a.label
+    for key in ("bedtime", "hidden"):
+        if getattr(a, key):
+            e[key] = True
+    e["checked"] = {"ok": bool(result.get("ok")), "at": datetime.date.today().isoformat()}
+    if a.icon:
+        push_logo(sid, a.icon)
+    write_json(RADIO_JSON, radio)
+    reload()
+    print(f"saved      {sid}" + ("" if radio_enabled() else
+          "  (the radio tab is off: switch it on in the admin screen)"))
+
+
+def radio_enabled():
+    return bool(read_json("settings.json").get("radio", False))
+
+
+def cmd_radio_list(_):
+    stations = read_json(RADIO_JSON).get("stations", {})
+    if not stations:
+        print("no stations (audiobox radio add URL)")
+        return
+    logos = set(sh(f"ls {q(RADIO_DIR)} 2>/dev/null; true").split())
+    rows = sorted(stations.items(), key=lambda kv: (kv[1].get("order") is None,
+                                                    kv[1].get("order") or 0,
+                                                    (kv[1].get("label") or kv[0]).lower()))
+    print(f"{'id':16} {'label':20} {'flags':16} {'check':12} url")
+    for sid, e in rows:
+        flags = " ".join(k for k in ("bedtime", "hidden") if e.get(k))
+        if any(f"{sid}{x}" in logos for x in ICONS):
+            flags = (flags + " logo").strip()
+        c = e.get("checked") or {}
+        check = ("ok " if c.get("ok") else "FAIL ") + c.get("at", "") if c else "-"
+        print(f"{sid:16} {(e.get('label') or sid)[:20]:20} {flags:16} {check:12} {e.get('url', '')}")
+    print("radio tab: " + ("on" if radio_enabled() else "off (switch it on in the admin screen)"))
+
+
+def cmd_radio_set(a):
+    radio = read_json(RADIO_JSON)
+    e = radio.get("stations", {}).get(a.id)
+    if e is None:
+        raise Fail(f"no station {a.id!r} (see: audiobox radio list)")
+    for kv in a.pairs:
+        if "=" not in kv:
+            raise Fail(f"expected key=value, got {kv!r}")
+        k, v = (x.strip() for x in kv.split("=", 1))
+        if k in STATION_BOOL_KEYS:
+            val = parse_value(k, v)
+        elif k == "order":
+            val = parse_value(k, v)
+        elif k == "label":
+            val = v or None
+        elif k == "url":
+            if not v:
+                raise Fail("url can't be empty (use radio rm to remove a station)")
+            val, _ = resolve_stream(v)
+            result = check_on_box(val)
+            print(f"check      {describe_check(result)}")
+            if not result.get("ok"):
+                raise Fail("not saved: the box can't play this stream")
+            e["checked"] = {"ok": True, "at": datetime.date.today().isoformat()}
+        else:
+            raise Fail(f"unknown key {k!r} (label, url, order, bedtime, hidden)")
+        if val is None:
+            e.pop(k, None)
+        else:
+            e[k] = val
+    write_json(RADIO_JSON, radio)
+    reload()
+    print(f"{a.id}: {json.dumps(e, ensure_ascii=False)}")
+
+
+def cmd_radio_rm(a):
+    radio = read_json(RADIO_JSON)
+    if radio.get("stations", {}).pop(a.id, None) is None:
+        raise Fail(f"no station {a.id!r}")
+    write_json(RADIO_JSON, radio)
+    sh(f"rm -f {' '.join(q(f'{RADIO_DIR}/{a.id}{e}') for e in ICONS)}")
+    reload()
+    print(f"removed {a.id}")
+
+
+def cmd_radio_check(a):
+    radio = read_json(RADIO_JSON)
+    stations = radio.get("stations", {})
+    ids = [a.id] if a.id else list(stations)
+    if a.id and a.id not in stations:
+        raise Fail(f"no station {a.id!r}")
+    failed = 0
+    for sid in ids:
+        result = check_on_box(stations[sid]["url"])
+        print(f"{sid:16} {describe_check(result)}")
+        if "busy" in str(result.get("error", "")):
+            raise Fail("the box is playing something; pause it and check again")
+        stations[sid]["checked"] = {"ok": bool(result.get("ok")),
+                                    "at": datetime.date.today().isoformat()}
+        failed += not result.get("ok")
+    write_json(RADIO_JSON, radio)
+    if failed:
+        sys.exit(1)
+
+
+def cmd_keyboard(a):
+    if "uid=0" not in adb("shell", "id"):
+        adb("root")
+        adb("wait-for-device")
+    ime = "com.android.inputmethod.latin"
+    if a.state == "on":
+        sh(f"pm enable {ime} >/dev/null && ime enable {ime}/.LatinIME >/dev/null "
+           f"&& ime set {ime}/.LatinIME >/dev/null")
+        print("keyboard on: join Wi-Fi in Android settings, then: audiobox keyboard off")
+    else:
+        sh(f"pm disable {ime} >/dev/null")
+        print("keyboard off")
+
+
 def cmd_reload(_):
     reload()
     print("reload sent")
@@ -487,6 +716,30 @@ def main():
     pl.add_argument("--undo", action="store_true", help="enable everything again")
     pl.set_defaults(fn=cmd_lockdown)
     sub.add_parser("reload").set_defaults(fn=cmd_reload)
+    rp = sub.add_parser("radio").add_subparsers(dest="radio_cmd", required=True)
+    ra = rp.add_parser("add")
+    ra.add_argument("url")
+    ra.add_argument("id", nargs="?")
+    ra.add_argument("--label")
+    ra.add_argument("--icon")
+    ra.add_argument("--bedtime", action="store_true")
+    ra.add_argument("--hidden", action="store_true")
+    ra.add_argument("--force", action="store_true", help="save even if the check fails")
+    ra.set_defaults(fn=cmd_radio_add)
+    rp.add_parser("list").set_defaults(fn=cmd_radio_list)
+    rs = rp.add_parser("set")
+    rs.add_argument("id")
+    rs.add_argument("pairs", nargs="+")
+    rs.set_defaults(fn=cmd_radio_set)
+    rr = rp.add_parser("rm")
+    rr.add_argument("id")
+    rr.set_defaults(fn=cmd_radio_rm)
+    rc = rp.add_parser("check")
+    rc.add_argument("id", nargs="?")
+    rc.set_defaults(fn=cmd_radio_check)
+    pk = sub.add_parser("keyboard")
+    pk.add_argument("state", choices=["on", "off"])
+    pk.set_defaults(fn=cmd_keyboard)
     a = p.parse_args()
     try:
         ensure_device()

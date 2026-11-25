@@ -1,6 +1,7 @@
 // audiobox: offline playlist player for the repurposed tigerbox TOUCH PLUS.
-// Android 5.1 (API 22) box with 512 MB RAM: plain Views, no AndroidX, no Kotlin
-// runtime, so the APK and its memory footprint stay small. See ../../APP-SPEC.md.
+// Android 5.1 (API 22) box with 512 MB RAM: plain Views, no Kotlin runtime, and no
+// AndroidX except Media3 for internet radio (RADIO-SPEC R2: the platform player
+// can't do TLS 1.2 here). See ../../APP-SPEC.md and ../../RADIO-SPEC.md.
 plugins {
     id("com.android.application")
 }
@@ -42,6 +43,9 @@ android {
 }
 
 dependencies {
+    // Internet radio only (RADIO-SPEC R2). 1.4.1 is the version tested on the box.
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
     testImplementation("junit:junit:4.13.2")
     // android.jar's org.json is a stub in local unit tests; use the real one there.
     testImplementation("org.json:json:20250517")

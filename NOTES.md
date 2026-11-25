@@ -651,3 +651,19 @@ Findings:
     by default. `tools/audiobox install` pushes the helper and appends
     `chmod 0666 /dev/i2c-2` to the vendor `/system/bin/install-recovery.sh`
     (runs as root via `flash_recovery` at boot; checked: 0666 after reboot).
+- Internet radio (2026-11-25, RADIO-SPEC.md):
+  - Prototype: the platform `MediaPlayer` hands HLS to Rockchip's
+    `RockFFPlayer`, which fails TLS with Klassikaraadio ("Unable to negotiate
+    TLS/SSL session"; the server is TLS 1.2+ only, http redirects to https).
+    ExoPlayer (Media3 1.4.1) works through Java networking.
+  - The box joined Wi-Fi with the keyboard switched on for a moment
+    (now `tools/audiobox keyboard on|off`). Automatic network time is on
+    (`settings global auto_time` 1).
+  - Built: `RadioPlayer` (ExoPlayer, reconnects, 160 kbit/s cap, 10–20 s
+    buffer), stations in `radio.json`, music/radio tabs, the radio player
+    screen, the admin Radio section, and the tool's `radio` commands with an
+    on-box muted test-play (`RADIO_CHECK` broadcast -> `radio-check.json`).
+  - Memory (PSS): 56 MB streaming, 49 MB with the station paused.
+  - `svc wifi disable` does nothing on this box; to simulate an outage, as
+    root: `iptables -I OUTPUT ! -o lo -j DROP` (and `-D` to undo). Also,
+    `adb root` doesn't survive a reboot.

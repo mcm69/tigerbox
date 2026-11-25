@@ -20,6 +20,8 @@ public class SettingsTest {
         assertEquals(19 * 60, s.bedtimeStart);
         assertEquals(7 * 60, s.bedtimeEnd);
         assertFalse(s.hasPin());
+        assertFalse("radio off until switched on", s.radioEnabled);
+        assertTrue(Settings.from(s.toJson()).bottomLight);
     }
 
     @Test

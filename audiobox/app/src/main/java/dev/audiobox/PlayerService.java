@@ -29,7 +29,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Plays playlists (APP-SPEC section 3). Runs for as long as the app does, in the
+ * Plays playlists (APP-SPEC section 3) and radio stations (RADIO-SPEC R6). One
+ * thing is loaded at a time: a playlist (MediaPlayer) or a station (RadioPlayer,
+ * ExoPlayer); loading one unloads the other. Runs for as long as the app does, in the
  * foreground, so its MediaSession can take the big button while the screen is off
  * (APP-SPEC section 4) even when nothing is loaded.
  *
@@ -40,6 +42,11 @@ public class PlayerService extends Service {
 
     public static final String ACTION_START = "dev.audiobox.START";
     public static final String ACTION_PLAY = "dev.audiobox.PLAY";      // extra "id"
+    public static final String ACTION_PLAY_STATION = "dev.audiobox.PLAY_STATION"; // extra "id"
+    /** From the Mac tool: test-play a URL muted, write radio-check.json (RADIO-SPEC R9). */
+    public static final String ACTION_RADIO_CHECK = "dev.audiobox.RADIO_CHECK"; // extra "url"
+    public static final String RADIO_CHECK_JSON = "radio-check.json";
+    private static final long CHECK_TIMEOUT_MS = 15_000;
     public static final String ACTION_TOGGLE = "dev.audiobox.TOGGLE";
     public static final String ACTION_NEXT = "dev.audiobox.NEXT";
     public static final String ACTION_PREV = "dev.audiobox.PREV";
@@ -58,7 +65,12 @@ public class PlayerService extends Service {
 
     /** Read-only snapshot for the UI. */
     public static final class Snapshot {
-        public final Playlist playlist; // null when nothing is loaded
+        public final Playlist playlist; // null when no playlist is loaded
+        /** The loaded station, or null. At most one of playlist and station is set. */
+        public Station station;
+        public RadioPlayer.State radioState = RadioPlayer.State.STOPPED;
+        /** "Now playing" text from the station's stream, or null. */
+        public String nowPlaying;
         public final int track;
         public final boolean playing;
         public final long positionMs;
@@ -74,6 +86,11 @@ public class PlayerService extends Service {
             this.durationMs = durationMs;
         }
 
+        /** A playlist or a station is loaded. */
+        public boolean loaded() {
+            return playlist != null || station != null;
+        }
+
         public String trackTitle() {
             if (playlist == null) return "";
             String n = playlist.tracks.get(track).getName();
@@ -85,8 +102,8 @@ public class PlayerService extends Service {
     public interface Listener {
         void onPlayerChanged(Snapshot s);
 
-        /** A playlist was refused because it's bedtime (APP-SPEC section 8). */
-        default void onBlocked(Playlist p) {}
+        /** A playlist or station was refused because it's bedtime (APP-SPEC section 8). */
+        default void onBlocked() {}
     }
 
     public final class LocalBinder extends Binder {
@@ -122,6 +139,11 @@ public class PlayerService extends Service {
     private boolean wantPlaying;
     private int consecutiveErrors;
 
+    private RadioPlayer radio;
+    private Station station;
+    /** A muted test-play for the Mac tool's "radio check", or null. */
+    private RadioPlayer checker;
+
     private final Runnable periodicSave = new Runnable() {
         @Override
         public void run() {
@@ -138,6 +160,13 @@ public class PlayerService extends Service {
                 loadSettings();
                 scheduleIdleCheck();
                 refreshLoaded();
+            } else if (ACTION_RADIO_CHECK.equals(i.getAction())) {
+                radioCheck(i.getStringExtra("url"));
+                return;
+            } else if (android.net.ConnectivityManager.CONNECTIVITY_ACTION.equals(i.getAction())) {
+                if (Net.online(c)) radio.retryNow();
+                changed();
+                return;
             }
             enforceVolumeCap();
         }
@@ -194,6 +223,11 @@ public class PlayerService extends Service {
                 .putExtra(EXTRA_ID, playlistId));
     }
 
+    public static void playStation(Context c, String stationId) {
+        c.startService(new Intent(c, PlayerService.class).setAction(ACTION_PLAY_STATION)
+                .putExtra(EXTRA_ID, stationId));
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -202,6 +236,7 @@ public class PlayerService extends Service {
         loadSettings();
         alarms = (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
         audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+        radio = new RadioPlayer(this, this::changed);
 
         session = new MediaSession(this, "audiobox");
         session.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
@@ -232,6 +267,8 @@ public class PlayerService extends Service {
         android.content.IntentFilter pf = new android.content.IntentFilter(HomeActivity.ACTION_RELOAD);
         pf.addAction("android.media.VOLUME_CHANGED_ACTION");
         pf.addAction(Intent.ACTION_HEADSET_PLUG);
+        pf.addAction(ACTION_RADIO_CHECK);
+        pf.addAction(android.net.ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(policy, pf);
         registerReceiver(screenOff, new android.content.IntentFilter(Intent.ACTION_SCREEN_OFF));
         enforceVolumeCap();
@@ -244,6 +281,8 @@ public class PlayerService extends Service {
         String action = intent == null ? null : intent.getAction();
         if (ACTION_PLAY.equals(action)) {
             play(intent.getStringExtra(EXTRA_ID));
+        } else if (ACTION_PLAY_STATION.equals(action)) {
+            playStation(intent.getStringExtra(EXTRA_ID));
         } else if (ACTION_TOGGLE.equals(action)) {
             toggle();
         } else if (ACTION_NEXT.equals(action)) {
@@ -270,6 +309,8 @@ public class PlayerService extends Service {
     public void onDestroy() {
         saveSpot();
         releasePlayer();
+        radio.reset();
+        if (checker != null) checker.reset();
         session.release();
         unregisterReceiver(battery);
         unregisterReceiver(policy);
@@ -299,36 +340,100 @@ public class PlayerService extends Service {
         }
         userActivity();
         if (blockedNow(p)) {
-            blocked(p);
+            blocked(p.id);
             return;
         }
         if (playlist != null && playlist.id.equals(p.id) && player != null) {
             if (!isPlaying()) start();
             return;
         }
+        unloadStation();
         saveSpot();
         load(p, true);
     }
 
+    /** Tapping a station (RADIO-SPEC R6): switch to it, or carry on with it. */
+    public void playStation(String id) {
+        Station st = findStation(id);
+        if (st == null || !settings.radioEnabled) {
+            Log.w(TAG, "playStation: no station " + id + (settings.radioEnabled ? "" : " (radio is off)"));
+            return;
+        }
+        userActivity();
+        if (blockedNow(st)) {
+            blocked(st.id);
+            return;
+        }
+        if (st.sameStream(station) && radio.isActive()) return;
+        loadStation(st, true);
+    }
+
+    private void loadStation(Station st, boolean autoplay) {
+        if (playlist != null) {
+            // Quietly unload the playlist; its resume spot is kept.
+            wantPlaying = false;
+            saveSpot();
+            main.removeCallbacks(periodicSave);
+            releasePlayer();
+            playlist = null;
+        }
+        if (!st.sameStream(station)) radio.reset();
+        station = st;
+        book.setLastStation(st.id);
+        persist();
+        Log.i(TAG, "load station " + st);
+        if (autoplay) startRadio();
+        else changed();
+    }
+
+    private void startRadio() {
+        int r = audio.requestAudioFocus(focus, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (r != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) Log.w(TAG, "audio focus not granted");
+        radio.setVolume(fadeVolume);
+        radio.start(station.url);
+        if (sleepEndsAt == 0) {
+            int m = settings.sleepMinutesFor(bedtimeNow());
+            if (m > 0) setSleepTimer(m);
+        }
+        userActivity();
+        changed();
+    }
+
+    /** Stop and forget the loaded station (keeps it as "last"). */
+    private void unloadStation() {
+        if (station == null) return;
+        radio.reset();
+        station = null;
+    }
+
     public void toggle() {
-        if (isPlaying()) pause();
+        if (isPlaying() || (station != null && radio.isActive())) pause();
         else resumeOrLast();
     }
 
     /** Play/pause with nothing loaded resumes the last playlist (APP-SPEC section 4). */
     public void resumeOrLast() {
         userActivity();
+        if (station != null) {
+            if (blockedNow(station)) {
+                blocked(station.id);
+                return;
+            }
+            if (!radio.isActive()) startRadio();
+            return;
+        }
         if (player != null) {
             if (blockedNow(playlist)) {
-                blocked(playlist);
+                blocked(playlist.id);
                 return;
             }
             start();
             return;
         }
         String last = book.last();
-        if (last != null) play(last);
-        else Log.i(TAG, "play pressed, nothing to resume");
+        if (last == null) Log.i(TAG, "play pressed, nothing to resume");
+        else if (book.lastIsStation()) playStation(last);
+        else play(last);
     }
 
     public void pause() {
@@ -336,6 +441,7 @@ public class PlayerService extends Service {
         cancelSleepTimer();
         userActivity();
         if (player != null && prepared && player.isPlaying()) player.pause();
+        if (station != null) radio.stop();
         if (fading) endFade(); // after pausing, so restoring the volume is silent
         saveSpot();
         main.removeCallbacks(periodicSave);
@@ -343,6 +449,10 @@ public class PlayerService extends Service {
     }
 
     public void next() {
+        if (station != null) {
+            skipStation(1);
+            return;
+        }
         if (playlist == null) return;
         if (pos + 1 < order.size()) {
             pos++;
@@ -351,6 +461,10 @@ public class PlayerService extends Service {
     }
 
     public void previous() {
+        if (station != null) {
+            skipStation(-1);
+            return;
+        }
         if (playlist == null) return;
         boolean keepPlaying = wantPlaying || isPlaying();
         if (prepared && player.getCurrentPosition() > PREV_RESTART_MS || pos == 0) {
@@ -362,11 +476,37 @@ public class PlayerService extends Service {
         openTrack(0, keepPlaying);
     }
 
+    /** ⏮ / ⏭ on a station: the previous / next visible station, if any. */
+    private void skipStation(int delta) {
+        userActivity();
+        List<Station> visible = Station.visible(store.stations());
+        int i = -1;
+        for (int k = 0; k < visible.size(); k++) if (visible.get(k).id.equals(station.id)) i = k;
+        int to = i + delta;
+        if (i < 0 || to < 0 || to >= visible.size()) return;
+        Station st = visible.get(to);
+        boolean keepPlaying = radio.isActive();
+        if (keepPlaying && blockedNow(st)) {
+            blocked(st.id);
+            return;
+        }
+        loadStation(st, keepPlaying);
+    }
+
+    /** Audio is coming out: a playlist track, or a station that is live. */
     public boolean isPlaying() {
-        return player != null && prepared && player.isPlaying();
+        return (player != null && prepared && player.isPlaying()) || radio.isPlaying();
     }
 
     public Snapshot snapshot() {
+        if (station != null) {
+            Snapshot s = new Snapshot(null, 0, radio.isActive(), 0, 0);
+            s.station = station;
+            s.radioState = radio.state();
+            s.nowPlaying = radio.nowPlaying();
+            s.sleepEndsAt = sleepEndsAt;
+            return s;
+        }
         if (playlist == null) return new Snapshot(null, 0, false, 0, 0);
         long position = prepared ? player.getCurrentPosition() : 0;
         long duration = prepared ? player.getDuration() : 0;
@@ -394,6 +534,10 @@ public class PlayerService extends Service {
 
     public boolean blockedNow(Playlist p) {
         return p != null && !p.bedtime && bedtimeNow();
+    }
+
+    public boolean blockedNow(Station st) {
+        return st != null && !st.bedtime && bedtimeNow();
     }
 
     /** Moon button: off -> 15 -> 30 -> 45 -> off. */
@@ -440,6 +584,7 @@ public class PlayerService extends Service {
                 if (!fading) return; // cancelled (e.g. paused by hand)
                 fadeVolume = v;
                 if (player != null) player.setVolume(v, v);
+                radio.setVolume(v);
                 if (last) pause();
             }, FADE_MS * i / steps);
         }
@@ -449,6 +594,7 @@ public class PlayerService extends Service {
         fading = false;
         fadeVolume = 1f;
         if (player != null) player.setVolume(1f, 1f);
+        radio.setVolume(1f);
     }
 
     private void scheduleIdleCheck() {
@@ -464,8 +610,9 @@ public class PlayerService extends Service {
         long idleFor = android.os.SystemClock.elapsedRealtime() - lastActivity;
         long limit = settings.idleOffMinutes * 60_000L;
         if (settings.idleOffMinutes <= 0) return;
-        if (isPlaying() || wantPlaying || idleFor < limit - 1_000) {
-            if (isPlaying()) lastActivity = android.os.SystemClock.elapsedRealtime();
+        boolean on = isPlaying() || wantPlaying || radio.isActive();
+        if (on || idleFor < limit - 1_000) {
+            if (on) lastActivity = android.os.SystemClock.elapsedRealtime();
             scheduleIdleCheck();
             return;
         }
@@ -507,11 +654,11 @@ public class PlayerService extends Service {
         }
     }
 
-    private void blocked(Playlist p) {
-        Log.i(TAG, "bedtime: " + p.id + " not allowed now");
+    private void blocked(String id) {
+        Log.i(TAG, "bedtime: " + id + " not allowed now");
         Lights.get().errorFlash();
         Screen.wake(this);
-        for (Listener l : listeners) l.onBlocked(p);
+        for (Listener l : listeners) l.onBlocked();
     }
 
     // --- internals ---------------------------------------------------------
@@ -524,6 +671,33 @@ public class PlayerService extends Service {
         return null;
     }
 
+    private Station findStation(String id) {
+        if (id == null) return null;
+        for (Station st : store.stations()) if (st.id.equals(id)) return st;
+        return null;
+    }
+
+    /**
+     * After a RELOAD, pick up a changed station (label, logo, flags, URL), or
+     * unload it when it was removed or radio was switched off.
+     */
+    private void refreshStation() {
+        Station fresh = findStation(station.id);
+        if (fresh == null || !settings.radioEnabled) {
+            Log.i(TAG, "unload station " + station.id + (fresh == null ? ": removed" : ": radio switched off"));
+            cancelSleepTimer();
+            if (fading) endFade();
+            unloadStation();
+            changed();
+            return;
+        }
+        boolean restart = !fresh.url.equals(station.url) && radio.isActive();
+        if (!fresh.url.equals(station.url)) radio.reset();
+        station = fresh;
+        if (restart) startRadio();
+        else changed();
+    }
+
     /**
      * After a RELOAD, pick up a changed label, icon or flags of the loaded
      * playlist so the player screen shows them. Only when its tracks are the
@@ -532,6 +706,10 @@ public class PlayerService extends Service {
      * removed is unloaded, so the player can't offer it any more.
      */
     private void refreshLoaded() {
+        if (station != null) {
+            refreshStation();
+            return;
+        }
         if (playlist == null) return;
         Playlist fresh = find(playlist.id);
         if (fresh == null) {
@@ -713,14 +891,24 @@ public class PlayerService extends Service {
 
     private void changed() {
         publishState();
-        Lights.get().player(playlist == null ? Lights.Player.IDLE
-                : isPlaying() || wantPlaying ? Lights.Player.PLAYING : Lights.Player.PAUSED);
+        Lights.Player lights;
+        if (station != null) {
+            // Breathing only once audio plays; steady while connecting (RADIO-SPEC R8).
+            lights = radio.isPlaying() ? Lights.Player.PLAYING : Lights.Player.PAUSED;
+        } else {
+            lights = playlist == null ? Lights.Player.IDLE
+                    : isPlaying() || wantPlaying ? Lights.Player.PLAYING : Lights.Player.PAUSED;
+        }
+        Lights.get().player(lights);
         Snapshot s = snapshot();
         for (Listener l : listeners) l.onPlayerChanged(s);
     }
 
     private void publishState() {
-        int st = playlist == null ? PlaybackState.STATE_NONE
+        int st = station != null
+                ? (radio.isPlaying() ? PlaybackState.STATE_PLAYING
+                : radio.isActive() ? PlaybackState.STATE_BUFFERING : PlaybackState.STATE_PAUSED)
+                : playlist == null ? PlaybackState.STATE_NONE
                 : isPlaying() ? PlaybackState.STATE_PLAYING
                 : wantPlaying ? PlaybackState.STATE_BUFFERING
                 : PlaybackState.STATE_PAUSED;
@@ -731,6 +919,72 @@ public class PlayerService extends Service {
                         | PlaybackState.ACTION_SKIP_TO_PREVIOUS)
                 .setState(st, position, 1f)
                 .build());
+    }
+
+    // --- radio check for the Mac tool (RADIO-SPEC R9) -----------------------
+
+    /**
+     * Test-plays a URL muted for up to 15 s and writes radio-check.json:
+     * {"url", "ok", "ms" (time to audio), "error", "nowPlaying"}. Refused while
+     * something plays, so a child's station is never interrupted.
+     */
+    private void radioCheck(String url) {
+        if (url == null || url.isEmpty()) return;
+        if (isPlaying() || wantPlaying || radio.isActive() || checker != null) {
+            writeCheck(url, false, 0, "busy: something is playing", null);
+            return;
+        }
+        long t0 = android.os.SystemClock.elapsedRealtime();
+        final RadioPlayer[] c = new RadioPlayer[1];
+        final Runnable timeout = () -> finishCheck(c[0], url, false, 0, "timeout: no audio within 15 s");
+        c[0] = new RadioPlayer(this, () -> {
+            RadioPlayer r = c[0];
+            if (r == null || r != checker) return;
+            if (r.state() == RadioPlayer.State.LIVE) {
+                main.removeCallbacks(timeout);
+                long ms = android.os.SystemClock.elapsedRealtime() - t0;
+                // Give the stream a moment to send its "now playing" text.
+                main.postDelayed(() -> finishCheck(r, url, true, ms, null), 2_000);
+            } else if (r.state() == RadioPlayer.State.RETRYING || r.state() == RadioPlayer.State.FAILED) {
+                main.removeCallbacks(timeout);
+                finishCheck(r, url, false, 0, r.lastError());
+            }
+        });
+        checker = c[0];
+        checker.setVolume(0f);
+        Log.i(TAG, "radio check: " + url);
+        checker.start(url);
+        main.postDelayed(timeout, CHECK_TIMEOUT_MS);
+    }
+
+    private void finishCheck(RadioPlayer r, String url, boolean ok, long ms, String error) {
+        if (r == null || r != checker) return;
+        String now = r.nowPlaying();
+        checker = null;
+        r.reset();
+        writeCheck(url, ok, ms, error, now);
+    }
+
+    private void writeCheck(String url, boolean ok, long ms, String error, String nowPlaying) {
+        Log.i(TAG, "radio check " + (ok ? "ok in " + ms + " ms" : "failed: " + error) + ": " + url);
+        try {
+            org.json.JSONObject j = new org.json.JSONObject();
+            j.put("url", url);
+            j.put("ok", ok);
+            if (ok) j.put("ms", ms);
+            if (error != null) j.put("error", error);
+            if (nowPlaying != null) j.put("nowPlaying", nowPlaying);
+            j.put("at", System.currentTimeMillis());
+            disk.submit(() -> {
+                try {
+                    store.write(RADIO_CHECK_JSON, j);
+                } catch (IOException e) {
+                    Log.e(TAG, "writing " + RADIO_CHECK_JSON + " failed: " + e.getMessage());
+                }
+            });
+        } catch (org.json.JSONException e) {
+            Log.e(TAG, "radio check result: " + e);
+        }
     }
 
     private Notification notification() {

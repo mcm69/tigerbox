@@ -1,6 +1,6 @@
 # Audio box: internet radio (spec draft)
 
-**Status: decided, 2026-11-25; ready to build.** Adds a curated internet radio tab to the audio box app
+**Status: built, 2026-11-25 (R1–R4 done; R5, a day of use, still open; see R11).** Adds a curated internet radio tab to the audio box app
 described in [APP-SPEC.md](APP-SPEC.md) ("section N" below refers to that file unless it says
 "R"). Decisions are marked **(decided, 2026-11-25)**; section R12 lists them.
 
@@ -108,7 +108,8 @@ A station is an entry in `radio.json` plus an optional logo:
 - **Bitrate (decided, 2026-11-25):** cap HLS at ~160 kbit/s (Klassikaraadio's 130k variant). That's
   ~60 MB an hour, and it starts faster on slow Wi-Fi.
 - Big button with nothing loaded resumes the last thing played, playlist or station
-  (`state.json` `last` becomes `{"type": "station", "id": …}` for stations).
+  (`state.json` keeps `"last": id` and adds `"lastType": "station"` for stations, so
+  older files still read as playlists).
 
 ## R7. Parental controls
 
@@ -119,7 +120,7 @@ A station is an entry in `radio.json` plus an optional logo:
 | Sleep timer | Same: fade and stop |
 | Idle auto-off | A playing (or connecting) station counts as activity |
 | Bedtime window | Only stations marked `bedtime` play, others dimmed, as for playlists **(decided, 2026-11-25)** |
-| Admin screen | A *Radio* section: the switch, plus reorder, rename and hide per station. Adding and removing is done from the Mac |
+| Admin screen | A *Radio* section: the switch, plus reorder, bedtime and hide per station, like playlists. Renaming, adding and removing are done from the Mac (there's no keyboard on the box) |
 
 Accepted risk: live radio plays whatever the station broadcasts (ads, news, talk). Curating
 the stations is the only filter.
@@ -151,11 +152,24 @@ audiobox keyboard on|off               # on-screen keyboard, for joining Wi-Fi
 ## R10. Memory
 
 ExoPlayer only exists while a station is starting or playing. Target as in section 11: no
-LMK kills in a day of mixed use. Measure audiobox PSS while streaming; if it's well above
-~35 MB, look at the ExoPlayer buffer sizes (the default `LoadControl` buffers up to 50 s,
-and live radio needs much less).
+LMK kills in a day of mixed use. Buffers are set to 10–20 s (the default `LoadControl`
+buffers up to 50 s; live radio needs much less).
+
+**Measured 2026-11-25** (`dumpsys meminfo dev.audiobox`, PSS): 56 MB streaming
+Klassikaraadio, 49 MB with the station paused (ExoPlayer released), so radio costs ~7 MB.
+Most of the rest is the UI's bitmap caches (Dalvik heap ~23 MB). The box had ~88 MB free plus
+~195 MB of cache at the time.
 
 ## R11. Milestones
+
+Progress (2026-11-25): R1–R4 are built and were checked on the box: the tool's `radio add`
+(with the on-box check), the tabs, the station tile and player ("Connecting…", "● LIVE"),
+pause/resume, switching between a playlist and a station, the big button resuming a
+station after an app restart, and the admin section. Reconnects were tested by blocking
+all traffic with `iptables` for 45 s: "Connecting…", retries after 2/5/10/30 s, playing
+again on the next retry once unblocked. (`svc wifi disable` does nothing on this box.)
+Not yet checked: the offline tile state with Wi-Fi really off, a router reboot, 30 min with
+the screen off, bedtime and the sleep timer with a station. R5 is open.
 
 | | Scope | Done when |
 |---|---|---|

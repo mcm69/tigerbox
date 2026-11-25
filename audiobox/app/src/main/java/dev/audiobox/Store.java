@@ -30,6 +30,15 @@ public final class Store {
         this.root = root;
     }
 
+    /** Station logos (RADIO-SPEC R4). */
+    public File radioDir() {
+        return new File(root, Station.RADIO_DIR);
+    }
+
+    public java.util.List<Station> stations() {
+        return Station.scan(radioDir(), read(Station.RADIO_JSON));
+    }
+
     public File libraryDir() {
         return new File(root, LIBRARY_DIR);
     }

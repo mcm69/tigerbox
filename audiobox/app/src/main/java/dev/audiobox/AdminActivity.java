@@ -104,6 +104,13 @@ public class AdminActivity extends Activity {
             saveSettings();
         }));
 
+        heading("Radio");
+        content.addView(toggleRow("Radio tab (needs Wi-Fi)", settings.radioEnabled, () -> {
+            settings.radioEnabled = !settings.radioEnabled;
+            saveSettings();
+        }));
+        buildStations();
+
         heading("Lights");
         content.addView(toggleRow("Blue light under the box while playing", settings.bottomLight, () -> {
             settings.bottomLight = !settings.bottomLight;
@@ -190,6 +197,62 @@ public class AdminActivity extends Activity {
         }
     }
 
+    // --- stations (RADIO-SPEC R7) ---------------------------------------------
+
+    private void buildStations() {
+        JSONObject radio = store.read(Station.RADIO_JSON);
+        List<Station> all = Station.scan(store.radioDir(), radio);
+        if (all.isEmpty()) {
+            content.addView(label("No stations. Add them from the Mac (tools/audiobox radio add)."));
+            return;
+        }
+        for (int i = 0; i < all.size(); i++) {
+            final Station st = all.get(i);
+            final int index = i;
+            LinearLayout r = row();
+            TextView name = label(st.label);
+            if (st.hidden) name.setAlpha(0.5f);
+            r.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            r.addView(pill("▲", false, v -> moveStation(all, index, -1)));
+            r.addView(pill("▼", false, v -> moveStation(all, index, 1)));
+            r.addView(pill("Bedtime", st.bedtime, v -> setStationFlag(st.id, "bedtime", !st.bedtime)));
+            r.addView(pill("Hidden", st.hidden, v -> setStationFlag(st.id, "hidden", !st.hidden)));
+            content.addView(r);
+        }
+    }
+
+    private void setStationFlag(String id, String key, boolean value) {
+        JSONObject radio = store.read(Station.RADIO_JSON);
+        JSONObject e = radio.optJSONObject("stations") == null ? null
+                : radio.optJSONObject("stations").optJSONObject(id);
+        if (e == null) return;
+        try {
+            e.put(key, value);
+        } catch (JSONException ex) {
+            return;
+        }
+        saveFile(Station.RADIO_JSON, radio);
+    }
+
+    private void moveStation(List<Station> all, int index, int delta) {
+        int to = index + delta;
+        if (to < 0 || to >= all.size()) return;
+        Station st = all.remove(index);
+        all.add(to, st);
+        JSONObject radio = store.read(Station.RADIO_JSON);
+        JSONObject stations = radio.optJSONObject("stations");
+        if (stations == null) return;
+        try {
+            for (int i = 0; i < all.size(); i++) {
+                JSONObject e = stations.optJSONObject(all.get(i).id);
+                if (e != null) e.put("order", i + 1);
+            }
+        } catch (JSONException e) {
+            return;
+        }
+        saveFile(Station.RADIO_JSON, radio);
+    }
+
     private void setFlag(String id, String key, boolean value) {
         JSONObject lib = store.read(Store.LIBRARY_JSON);
         try {
@@ -242,8 +305,12 @@ public class AdminActivity extends Activity {
     }
 
     private void saveLibrary(JSONObject lib) {
+        saveFile(Store.LIBRARY_JSON, lib);
+    }
+
+    private void saveFile(String name, JSONObject json) {
         try {
-            store.write(Store.LIBRARY_JSON, lib);
+            store.write(name, json);
         } catch (IOException e) {
             Toast.makeText(this, "Could not save: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
