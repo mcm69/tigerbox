@@ -310,8 +310,16 @@ public class HomeActivity extends Activity implements PlayerService.Listener {
     @Override
     public void onPlayerChanged(PlayerService.Snapshot s) {
         String before = loadedKey(snap), now = loadedKey(s);
+        boolean started = s.playing && !snap.playing;
         snap = s;
         showPlayer(s);
+        if (started && gridScreen.getVisibility() == View.VISIBLE) {
+            // Playback started from the big button (e.g. resuming after boot): show
+            // what's playing. A tile tap opens the player itself. Going back lands
+            // on the tab and page holding it.
+            setTab(s.station != null);
+            showPlayerScreen();
+        }
         if (before == null ? now != null : !before.equals(now)) layoutPage(); // move the highlight
         else refreshBadges();
     }

@@ -65,7 +65,7 @@ It is installed with the app and must not use the `WAKE` flag (§4).
 
 | Gesture | Effect |
 |---|---|
-| Short press | Play/pause. If nothing is loaded, it resumes the last playlist. Arrives through the `MediaSession` when the screen is off and through `onKeyDown` in `HomeActivity` when it is on. Either way the app also wakes the screen briefly so the child sees a reaction. |
+| Short press | Play/pause. If nothing is loaded, it resumes the last playlist or station. When playback starts this way, the home screen switches from the grid to the player screen. Arrives through the `MediaSession` when the screen is off and through `onKeyDown` in `HomeActivity` when it is on. Either way the app also wakes the screen briefly so the child sees a reaction. |
 | Hold ~3 s | Power off. The ring turns red as a warning, the resume position is saved, then the app shuts the box down (`SHUTDOWN` permission). |
 | Hold ~6–8 s | The PMIC cuts power in hardware. This is the fallback if the app hangs. |
 | Power on | PMIC/charger, outside the app. When charging, a ~3 s hold is needed. |
